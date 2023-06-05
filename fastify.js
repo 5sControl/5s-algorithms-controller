@@ -183,6 +183,6 @@ fastify.post('/info', async (req, res) => {
     ])
 })
 
-fastify.listen({port: 3333}, (err, address) => {
+fastify.listen({port: 3333, host: '0.0.0.0'}, (err, address) => {
     if (err) throw err
 })
