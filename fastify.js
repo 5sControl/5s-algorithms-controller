@@ -17,7 +17,7 @@ setInterval(() => {
 
 const MIN_MAX_PYTHON = process.env.MIN_MAX_PYTHON;
 const IDLE_PYTHON = process.env.IDLE_PYTHON;
-const SERVER_IP = process.env.SERVER_IP;
+const SERVER_IP = process.env.IP;
 const pythonAlgorithms = {}
 
 // algorithm: 'machine_control',
