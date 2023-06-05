@@ -88,11 +88,13 @@ fastify.post('/run', async (req, res) => {
             return
         }
         if (pythonAlgorithms[camera_url]) {
-            pythonAlgorithms[camera_url][algorithm] = true
+            pythonAlgorithms[camera_url][algorithm] = container
         } else {
             pythonAlgorithms[camera_url] = {}
-            pythonAlgorithms[camera_url][algorithm] = true
+            pythonAlgorithms[camera_url][algorithm] = container
         }
+
+        algorithms[pid] = {camera_url, algorithm}
 
         res.send({'status': true, 'pid': pid})
         return
@@ -114,8 +116,8 @@ fastify.post('/stop', async (req, res) => {
         }
 
         // stop python algorithms
-        if (pid && algorithms[pid] && algorithms[pid]?.container) {
-            const isContainerRemoved = await removeContainer(algorithms[pid].container)
+        if (pid && algorithms[pid]) {
+            const isContainerRemoved = await removeContainer(pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm])
             if (isContainerRemoved) {
                 res.send({'status': true})
                 pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm] = false
