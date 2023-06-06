@@ -67,7 +67,7 @@ fastify.post('/run', async (req, res) => {
 
     try {
         const {hostname, username, password} = parseRTSPuri(req.body.camera_url)
-        const envVars = [`camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot?Profile_1?camera_ip=${hostname}`]
+        const envVars = [`camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot?camera_ip=${hostname}`]
         envVars.push(`username=${username}`)
         envVars.push(`password=${password}`)
         envVars.push(`server_url=${server_url}`)
