@@ -178,9 +178,9 @@ fastify.post('/info', async (req, res) => {
                 ' This type of control helps to streamline the process and prevent any errors or omissions that could lead to costly production delays. ',
         },
         {
-            "name": "Machine Control JS",
+            "name": "Machine Control Python",
             "version": machineVersion,
-            "date": '03.23.2023',
+            "date": '06.12.2023',
             "description": 'Designed to ensure that the machine is not left unsupervised, which' +
                 ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
                 'This control is essential in workplaces where machines are used, such as factories, ' +
