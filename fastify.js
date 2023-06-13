@@ -76,11 +76,12 @@ fastify.post('/run', async (req, res) => {
         envVars.push(`password=${password}`)
         envVars.push(`server_url=${server_url}`)
         envVars.push(`folder=images/${hostname}`)
-        if (req.body.algorithm === 'min_max_control') {
+        if (!!req.body.extra) {
             const areas = req.body.extra;
             const areasStr = JSON.stringify(areas)
             console.log(areasStr, 'areasStr')
             envVars.push(`areas=${areasStr}`)
+            envVars.push(`extra=${areasStr}`)
         }
 
         const pid = randomInt()
