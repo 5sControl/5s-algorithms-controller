@@ -45,6 +45,7 @@ fastify.post('/run', async (req, res) => {
             return
         }
     } catch (e) {
+        console.log(e, 'validatio error catch')
         res.send({'status': false, 'error': 'Validation error'})
         return
     }
