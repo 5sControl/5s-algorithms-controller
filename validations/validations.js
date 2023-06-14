@@ -11,16 +11,16 @@ const validationEndpointRunMinMaxAlgorithm = (body) => {
         return 'extra is not array';
     }
 
-    if (body?.algorithm === "min_max_control" && !body?.extra[0]?.itemId) {
+    if (body?.algorithm === "min_max_control" && !body?.extra[0]?.areas[0].itemId) {
         return 'ItemId not found'
     }
 
-    if (body?.algorithm === "min_max_control" && !Array.isArray(body?.extra[0]?.coords)) {
+    if (body?.algorithm === "min_max_control" && !Array.isArray(body?.extra[0]?.areas[0].coords)) {
         return 'coords is not array'
     }
 
     if (body?.algorithm === "min_max_control") {
-        body.extra.forEach((item) => {
+        body.extra.areas.forEach((item) => {
             if (!Array.isArray(item.coords) || item.coords.length === 0) {
                 isCoordsFound = false;
             }
