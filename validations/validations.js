@@ -20,7 +20,7 @@ const validationEndpointRunMinMaxAlgorithm = (body) => {
     }
 
     if (body?.algorithm === "min_max_control") {
-        body.extra.areas.forEach((item) => {
+        body.extra[0].areas.forEach((item) => {
             if (!Array.isArray(item.coords) || item.coords.length === 0) {
                 isCoordsFound = false;
             }
