@@ -15,6 +15,12 @@ const startContainer = async (image = 'test_ref', name = 'test_ref', envVars = [
                         Source: '/home/server/reps/images',
                         Target: '/var/www/5scontrol/images',
                         ReadOnly: false
+                    },
+                    {
+                        Type: 'bind',
+                        Source: '/home/server/reps/debug',
+                        Target: '/var/www/5scontrol/debug',
+                        ReadOnly: false
                     }
                 ]
             }
