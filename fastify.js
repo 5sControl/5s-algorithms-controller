@@ -25,9 +25,17 @@ const pythonAlgorithms = {}
 // server_url: 'http://192.168.1.110'
 fastify.post('/run', async (req, res) => {
     if (isFirstStart) {
+        try {
+            console.log('REMOOOOOVEEEEE')
+            await removeContainers({'min_max_model': images['min_max_model']})
+            await startContainer(images['min_max_model'][images['min_max_model'].length - 1], 'min_max_model', [`server_url=${SERVER_IP}`])
+        } catch(e) {
+            console.log(e, 'first start error')
+        }
         console.log('<<<<<<<<<remove containers>>>>>>>>')
         await removeContainers(images)
         isFirstStart = false;
+
     }
     console.log(req.body, 'req.body')
 

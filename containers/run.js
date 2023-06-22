@@ -22,7 +22,8 @@ const startContainer = async (image = 'test_ref', name = 'test_ref', envVars = [
                         Target: '/var/www/5scontrol/debug',
                         ReadOnly: false
                     }
-                ]
+                ],
+                NetworkMode: 'host'
             }
         })
         const startedContainer = await container.start();
@@ -72,6 +73,10 @@ const removeContainers = async (images) => {
             await removeContainerByImage(image.split(':')[0])
         }
     }
+};
+
+const runMinMaxModel = async () => {
+
 };
 
 module.exports = {startContainer, removeContainer, removeContainerByImage, removeContainers}
