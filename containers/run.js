@@ -23,7 +23,7 @@ const startContainer = async (image = 'test_ref', name = 'test_ref', envVars = [
                         ReadOnly: false
                     }
                 ],
-                CpusetCpus: 0.5,
+                CpusetCpus: '0.5',
                 NetworkMode: 'host'
             }
         })
