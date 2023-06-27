@@ -13,6 +13,7 @@ let isFirstStart = true;
 
 setInterval(() => {
     console.log(algorithms, 'algorithms')
+    console.log(pythonAlgorithms, 'pythonAlgorithms')
 }, 10000)
 
 const MIN_MAX_PYTHON = process.env.MIN_MAX_PYTHON;
@@ -58,6 +59,7 @@ fastify.post('/run', async (req, res) => {
 
     // is algorithms allready started
     try {
+
         if (pythonAlgorithms[camera_url] && pythonAlgorithms[camera_url][algorithm]) {
             res.send({'status': false, 'error': 'Algorithm allready started'})
             return
