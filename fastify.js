@@ -14,7 +14,7 @@ let isFirstStart = true;
 setInterval(() => {
     console.log(algorithms, 'algorithms')
     console.log(pythonAlgorithms, 'pythonAlgorithms')
-}, 10000)
+}, 1000 * 60 * 10)
 
 const MIN_MAX_PYTHON = process.env.MIN_MAX_PYTHON;
 const IDLE_PYTHON = process.env.IDLE_PYTHON;
