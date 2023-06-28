@@ -162,7 +162,7 @@ fastify.post('/info', async (req, res) => {
         {
             "name": "Idle Control PYTHON",
             "version": idleVersion,
-            "date": "06.26.2023",
+            "date": "06.28.2023",
             "description": 'Designed to ensure that employees stay focused and on-task, preventing distractions' +
                 ' such as talking on the phone, smoking breaks, and other time-wasting activities. With Idle Control, ' +
                 'employers can monitor employee activity and productivity to ensure maximum efficiency. '
@@ -170,7 +170,7 @@ fastify.post('/info', async (req, res) => {
         {
             "name": "MinMax Control PYTHON",
             "version": minMaxVersion,
-            "date": "06.21.2023",
+            "date": "06.28.2023",
             "description": 'Designed to ensure that optimal stock levels are maintained. ' +
                 'This type of control helps to make informed decisions about when & how much to order. ' +
                 'You can avoid overstocking or stockouts, preventing costly production line stoppages and lost profits.'
