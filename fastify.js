@@ -170,7 +170,7 @@ fastify.post('/info', async (req, res) => {
         {
             "name": "MinMax Control PYTHON",
             "version": minMaxVersion,
-            "date": "07.12.2023",
+            "date": "07.14.2023",
             "description": 'Designed to ensure that optimal stock levels are maintained. ' +
                 'This type of control helps to make informed decisions about when & how much to order. ' +
                 'You can avoid overstocking or stockouts, preventing costly production line stoppages and lost profits.'
