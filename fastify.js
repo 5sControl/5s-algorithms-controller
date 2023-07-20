@@ -185,7 +185,7 @@ fastify.post('/info', async (req, res) => {
         {
             "name": "Machine Control Python",
             "version": machineVersion,
-            "date": '07.12.2023',
+            "date": '07.20.2023',
             "description": 'Designed to ensure that the machine is not left unsupervised, which' +
                 ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
                 'This control is essential in workplaces where machines are used, such as factories, ' +
