@@ -162,7 +162,7 @@ fastify.post('/info', async (req, res) => {
         {
             "name": "Idle Control PYTHON",
             "version": idleVersion,
-            "date": "07.19.2023",
+            "date": "07.31.2023",
             "description": 'Designed to ensure that employees stay focused and on-task, preventing distractions' +
                 ' such as talking on the phone, smoking breaks, and other time-wasting activities. With Idle Control, ' +
                 'employers can monitor employee activity and productivity to ensure maximum efficiency. '
@@ -170,7 +170,7 @@ fastify.post('/info', async (req, res) => {
         {
             "name": "MinMax Control PYTHON",
             "version": minMaxVersion,
-            "date": "07.19.2023",
+            "date": "07.31.2023",
             "description": 'Designed to ensure that optimal stock levels are maintained. ' +
                 'This type of control helps to make informed decisions about when & how much to order. ' +
                 'You can avoid overstocking or stockouts, preventing costly production line stoppages and lost profits.'
@@ -178,7 +178,7 @@ fastify.post('/info', async (req, res) => {
         {
             "name": "Operation Control",
             "version": operationVersion,
-            "date": '07.19.2023',
+            "date": '07.31.2023',
             "description": 'Designed to ensure that the necessary number of operations are executed while cleaning seams during production.' +
                 ' This type of control helps to streamline the process and prevent any errors or omissions that could lead to costly production delays. ',
         },
