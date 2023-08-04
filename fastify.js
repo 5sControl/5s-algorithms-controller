@@ -173,7 +173,7 @@ fastify.post('/info', async (req, res) => {
     {
       name: 'MinMax Control PYTHON',
       version: minMaxVersion,
-      date: '02.08.2023',
+      date: '08.04.2023',
       description:
         'Designed to ensure that optimal stock levels are maintained. ' +
         'This type of control helps to make informed decisions about when & how much to order. ' +
@@ -190,7 +190,7 @@ fastify.post('/info', async (req, res) => {
     {
       name: 'Machine Control Python',
       version: machineVersion,
-      date: '08.02.2023',
+      date: '08.04.2023',
       description:
         'Designed to ensure that the machine is not left unsupervised, which' +
         ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
