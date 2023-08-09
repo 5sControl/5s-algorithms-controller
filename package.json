@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "fastify": "^4.17.0",
-    "node-docker-api": "^1.1.22"
+    "node-docker-api": "^1.1.22",
+    "socket.io-client": "^4.7.2"
   }
 }
