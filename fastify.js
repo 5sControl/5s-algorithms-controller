@@ -17,6 +17,7 @@ const SERVER_IP = process.env.IP;
 const pythonAlgorithms = {};
 
 const socket = io(`http://${SERVER_IP}:3456`);
+let tasks = {};
 function asyncSetInterval(fn, interval) {
     const asyncWrapper = async () => {
         await fn();
@@ -38,6 +39,7 @@ socket.on('connect', () => {
          return async () => {
              const stats = await getContainersStats(algorithms, pythonAlgorithms)
              console.log('<<<<<<emit>>>>>>')
+             tasks = stats;
              socket.emit('tasks', stats)
          }
     }
@@ -49,6 +51,10 @@ setInterval(() => {
     console.log(algorithms, 'algorithms');
     console.log(pythonAlgorithms, 'pythonAlgorithms');
 }, 1000 * 60 * 10);
+
+fastify.get('/tasks', async (req, res) => {
+    res.send({status: true, tasks});
+})
 
 // algorithm: 'machine_control',
 // camera_url: 'rtsp://admin:just4Taqtile@192.168.1.168/h264_stream',
