@@ -111,8 +111,10 @@ async function readContainerLogs(container) {
                 });
 
                 stream.on('end', () => {
-                    const allLogs = logs.join(''); // Combine the accumulated logs
-                    resolve(allLogs);
+                    const allLogs = logs.join('');
+                    const cleanedString = allLogs.replace(/\\u[0-9a-f]{4}|[^ -~]+/g, '');
+
+                    resolve(cleanedString);
                 });
             }).catch((err) => {
                 console.error('readContainerLogs error:', err);
