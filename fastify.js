@@ -23,7 +23,6 @@ socket.on('connect', () => {
     const stats = await getContainersStats(algorithms, pythonAlgorithms);
     console.log('<<<emit>>>>')
     socket.emit('tasks', stats)
-        console.log(stats)
 }, 1000);
 });
 
