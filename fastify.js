@@ -17,13 +17,32 @@ const SERVER_IP = process.env.IP;
 const pythonAlgorithms = {};
 
 const socket = io(`http://${SERVER_IP}:3456`);
+function asyncSetInterval(fn, interval) {
+    const asyncWrapper = async () => {
+        await fn();
+        scheduleAsync();
+    };
+
+    function scheduleAsync() {
+        setTimeout(asyncWrapper, interval);
+    }
+
+    scheduleAsync();
+
+    // Return a function to stop the async interval
+    return () => clearTimeout(asyncWrapper);
+}
 socket.on('connect', () => {
      console.log('<<<<<connect>>>>')
-    setInterval(async () => {
-    const stats = await getContainersStats(algorithms, pythonAlgorithms);
-    console.log('<<<emit>>>>')
-    socket.emit('tasks', stats)
-}, 1000);
+    const fn = (algorithms, pythonAlgorithms, socket) => {
+         return async () => {
+             const stats = await getContainersStats(algorithms, pythonAlgorithms)
+             console.log('<<<<<<emit>>>>>>')
+             socket.emit('tasks', stats)
+         }
+    }
+    const getStatsFn = fn(algorithms, pythonAlgorithms, socket)
+    asyncSetInterval(getStatsFn, 1000)
 });
 
 setInterval(() => {
