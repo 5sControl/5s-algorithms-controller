@@ -18,8 +18,10 @@ const pythonAlgorithms = {};
 
 const socket = io(`http://${SERVER_IP}:3456`);
 socket.on('connect', () => {
+     console.log('<<<<<connect>>>>')
     setInterval(async () => {
     const stats = await getContainersStats(algorithms, pythonAlgorithms);
+    console.log('<<<emit>>>>')
     socket.emit('tasks', stats)
         console.log(stats)
 }, 1000);
