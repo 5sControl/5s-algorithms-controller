@@ -103,7 +103,7 @@ async function readContainerLogs(container) {
     try {
         // const stream = await container.logs({follow: true, stdout: true, stderr: true})
         return new Promise((resolve, reject) => {
-            container.logs({follow: true, stdout: true, stderr: true}).then((stream) => {
+            container.logs({follow: false, stdout: true, stderr: true}).then((stream) => {
                 stream.on('data', (chunk) => {
                     resolve(chunk.toString())
                 });
