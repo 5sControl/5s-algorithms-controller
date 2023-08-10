@@ -163,4 +163,4 @@ const getContainersStats = async (algorithms, pythonAlgorithms) => {
     return algorithmsDataToSend;
 };
 
-module.exports = {startContainer, removeContainer, removeContainerByImage, removeContainers, getContainersStats}
+module.exports = {startContainer, removeContainer, removeContainerByImage, removeContainers, getContainersStats, readContainerLogs}

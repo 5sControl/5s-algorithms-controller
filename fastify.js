@@ -2,7 +2,7 @@ const fastify = require('fastify')({
     logger: true,
 });
 const {isExists, randomInt, parseRTSPuri} = require('./utils/');
-const {startContainer, removeContainer, removeContainers, getContainersStats} = require('./containers/run');
+const {startContainer, removeContainer, removeContainers, getContainersStats, readContainerLogs} = require('./containers/run');
 const {images} = require('./containers/images');
 const {
     validationEndpointRun,
@@ -54,6 +54,15 @@ setInterval(() => {
 
 fastify.get('/tasks', async (req, res) => {
     res.send({status: true, tasks});
+})
+
+fastify.get('/logs', async (req, res) => {
+    const { taskId } = req.query;
+    if (!taskId) return res.send({status: false, error: 'taskId is required'});
+    if (!algorithms[taskId]) return res.send({status: false, error: 'task not found'})
+    const container = pythonAlgorithms[algorithms[taskId].camera_url][algorithms[taskId].algorithm]
+    const logs = await readContainerLogs(container);
+    res.send({status: true, logs});
 })
 
 // algorithm: 'machine_control',
