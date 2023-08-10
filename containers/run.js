@@ -101,11 +101,18 @@ async function readContainerStats(container) {
 
 async function readContainerLogs(container) {
     try {
+        const logs = [];
         // const stream = await container.logs({follow: true, stdout: true, stderr: true})
         return new Promise((resolve, reject) => {
             container.logs({follow: false, stdout: true, stderr: true}).then((stream) => {
                 stream.on('data', (chunk) => {
-                    resolve(chunk.toString())
+                    logs.push(chunk.toString());
+                    // resolve(chunk.toString())
+                });
+
+                stream.on('end', () => {
+                    const allLogs = logs.join(''); // Combine the accumulated logs
+                    resolve(allLogs);
                 });
             }).catch((err) => {
                 console.error('readContainerLogs error:', err);
