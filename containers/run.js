@@ -110,7 +110,7 @@ async function readContainerLogs(container) {
                 });
 
                 stream.on('end', () => {
-                    resolve(logs.map(log => log.replace(/\\u[0-9a-f]{4}|[^ -~]+/g, ''););
+                    resolve(logs.map(log => log.replace(/\\u[0-9a-f]{4}|[^ -~]+/g, '')));
                 });
             }).catch((err) => {
                 console.error('readContainerLogs error:', err);
