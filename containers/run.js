@@ -106,15 +106,11 @@ async function readContainerLogs(container) {
         return new Promise((resolve, reject) => {
             container.logs({follow: false, stdout: true, stderr: true}).then((stream) => {
                 stream.on('data', (chunk) => {
-                    logs.push(chunk.toString());
-                    // resolve(chunk.toString())
+                    logs.unshift(chunk.toString());
                 });
 
                 stream.on('end', () => {
-                    const allLogs = logs.join('');
-                    const cleanedString = allLogs.replace(/\\u[0-9a-f]{4}|[^ -~]+/g, '');
-
-                    resolve(cleanedString);
+                    resolve(logs.map(log => log.replace(/\\u[0-9a-f]{4}|[^ -~]+/g, ''););
                 });
             }).catch((err) => {
                 console.error('readContainerLogs error:', err);
