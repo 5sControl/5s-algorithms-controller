@@ -157,17 +157,30 @@ function calculateContainerCpuLoad(currentCpuStats, previousCpuStats) {
 const getContainersStats = async (algorithms, pythonAlgorithms) => {
     const algorithmsDataToSend = {};
     for (const alg in algorithms) {
-        const {version, image, algorithm, camera_url} = algorithms[alg];
+        let {version, image, algorithm, camera_url} = algorithms[alg];
         const container = pythonAlgorithms[camera_url][algorithm];
         const status = await readContainerStatus(container);
         let {previousStats, currentStats} = await readContainerStats(container);
         const {memory_stats} = currentStats;
         let ram = memory_stats.usage / 1000000; // to mb;
         let cpu = calculateContainerCpuLoad(currentStats.cpu_stats, previousStats.cpu_stats);
+        if (isNaN(cpu)) {
+            cpu = 0;
+        }
+        if (isNaN(ram)) {
+            ram = 0;
+        }
         cpu = cpu + '%';
-        ram = ram.toFixed(0) + 'M'
-        const additionalData = {cpu, ram, status}
+        ram = ram.toFixed(0) + 'M';
+        let gpu = '0%';
+        
+        const additionalData = {cpu, ram, status, gpu}
         algorithmsDataToSend[alg] = {...algorithms[alg], ...additionalData}
+        const ipPattern = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
+        const match = ipPattern.exec(camera_url);
+        if (match) {
+            algorithmsDataToSend[alg].camera_url = match[0];
+        }
     }
     return algorithmsDataToSend;
 };
