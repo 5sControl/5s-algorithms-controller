@@ -1,6 +1,14 @@
 const fastify = require('fastify')({
   logger: true,
 });
+fastify.register(require('@fastify/cors'), (instance) => {
+  return (req, callback) => {
+    const corsOptions = {
+      origin: true
+    };
+    callback(null, corsOptions)
+  }
+})
 const { isExists, randomInt, parseRTSPuri } = require('./utils/');
 const {
   startContainer,
