@@ -4,11 +4,11 @@ const fastify = require('fastify')({
 fastify.register(require('@fastify/cors'), (instance) => {
   return (req, callback) => {
     const corsOptions = {
-      origin: true
+      origin: true,
     };
-    callback(null, corsOptions)
-  }
-})
+    callback(null, corsOptions);
+  };
+});
 const { isExists, randomInt, parseRTSPuri } = require('./utils/');
 const {
   startContainer,
@@ -214,6 +214,8 @@ fastify.post('/info', async (req, res) => {
   const operationVersion = operationImage.split(':')[1];
   const machineImage = images.machine_control[images.machine_control.length - 1];
   const machineVersion = machineImage.split(':')[1];
+  const machineJsImage = images.machine_control_js[images.machine_control_js.length - 1];
+  const machineJsVersion = machineJsImage.split(':')[1];
 
   res.send([
     {
@@ -246,6 +248,16 @@ fastify.post('/info', async (req, res) => {
       name: 'Machine Control Python',
       version: machineVersion,
       date: '08.09.2023',
+      description:
+        'Designed to ensure that the machine is not left unsupervised, which' +
+        ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
+        'This control is essential in workplaces where machines are used, such as factories, ' +
+        'construction sites, or warehouses.',
+    },
+    {
+      name: 'Machine Control Js',
+      version: machineJsVersion,
+      date: '08.16.2023',
       description:
         'Designed to ensure that the machine is not left unsupervised, which' +
         ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
