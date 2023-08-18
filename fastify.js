@@ -221,7 +221,7 @@ fastify.post('/info', async (req, res) => {
     {
       name: 'Idle Control PYTHON',
       version: idleVersion,
-      date: '09.09.2023',
+      date: '08.09.2023',
       description:
         'Designed to ensure that employees stay focused and on-task, preventing distractions' +
         ' such as talking on the phone, smoking breaks, and other time-wasting activities. With Idle Control, ' +
@@ -230,7 +230,7 @@ fastify.post('/info', async (req, res) => {
     {
       name: 'MinMax Control PYTHON',
       version: minMaxVersion,
-      date: '08.09.2023',
+      date: '08.18.2023',
       description:
         'Designed to ensure that optimal stock levels are maintained. ' +
         'This type of control helps to make informed decisions about when & how much to order. ' +
