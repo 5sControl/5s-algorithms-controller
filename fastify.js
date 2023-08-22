@@ -257,7 +257,7 @@ fastify.post('/info', async (req, res) => {
     {
       name: 'Machine Control Js',
       version: machineJsVersion,
-      date: '08.16.2023',
+      date: '08.22.2023',
       description:
         'Designed to ensure that the machine is not left unsupervised, which' +
         ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
