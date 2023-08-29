@@ -16,7 +16,7 @@ const images = {
     '5scontrol/min_max_python:v0.3.11',
     '5scontrol/min_max_python:v0.3.12',
     '5scontrol/min_max_python:v0.3.16',
-    '5scontrol/min_max_python:v0.4.8',
+    '5scontrol/min_max_python:v0.5.0',
   ],
   operation_control: [
     '5scontrol/operation_control_js:v1.0.0-rc.1',
