@@ -136,6 +136,7 @@ fastify.post('/run', async (req, res) => {
     envVars.push(`password=${password}`);
     envVars.push(`server_url=${server_url}`);
     envVars.push(`folder=images/${hostname}`);
+    envVars.push(`camera_ip=${hostname}`);
     if (!!req.body.extra) {
       const areas = req.body.extra;
       const areasStr = JSON.stringify(areas);
