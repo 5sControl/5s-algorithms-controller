@@ -240,7 +240,7 @@ fastify.post('/info', async (req, res) => {
     {
       name: 'Operation Control',
       version: operationVersion,
-      date: '07.31.2023',
+      date: '08.30.2023',
       description:
         'Designed to ensure that the necessary number of operations are executed while cleaning seams during production.' +
         ' This type of control helps to streamline the process and prevent any errors or omissions that could lead to costly production delays. ',
@@ -258,7 +258,7 @@ fastify.post('/info', async (req, res) => {
     {
       name: 'Machine Control Js',
       version: machineJsVersion,
-      date: '08.23.2023',
+      date: '08.30.2023',
       description:
         'Designed to ensure that the machine is not left unsupervised, which' +
         ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
