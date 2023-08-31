@@ -6,7 +6,7 @@ const images = {
     '5scontrol/idle_python:v0.3.11-stable',
     '5scontrol/idle_python:v0.3.13',
     '5scontrol/idle_python:v0.3.15',
-    '5scontrol/idle_python:v0.4.6',
+    '5scontrol/idle_python:v0.5.0',
   ],
   min_max_control: [
     '5scontrol/min_max_python:v0.3.6',
