@@ -27,7 +27,7 @@ const images = {
     '5scontrol/machine_control_js:v0.1.0',
     '5scontrol/machine_control_python:v1.0.1',
     '5scontrol/machine_control_python:v1.1.1',
-    '5scontrol/machine_control_python:v1.3.1',
+    '5scontrol/machine_control_python:v1.3.2',
   ],
   machine_control_js: ['5scontrol/machine_control_js:v0.3.0'],
 };
