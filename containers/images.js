@@ -29,7 +29,7 @@ const images = {
     '5scontrol/machine_control_python:v1.1.1',
     '5scontrol/machine_control_python:v1.3.2',
   ],
-  machine_control_js: ['5scontrol/machine_control_js:v0.3.0'],
+  machine_control_js: ['5scontrol/machine_control_js:v0.4.0'],
 };
 
 module.exports = { images };
