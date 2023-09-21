@@ -242,7 +242,9 @@ fastify.post('/stop', async (req, res) => {
 fastify.post('/run', async (req, res) => {
   if (isFirstStart) {
     console.log('<<<<<<<<<remove containers>>>>>>>>');
-    const { data: images } = await axios.get(`http://${SERVER_IP}:80/getImages`);
+    const { data: images } = await axios.get(
+      `http://${SERVER_IP}:80/api/camera-algorithms/unique-image-names`,
+    );
     console.log(images);
     await removeContainers(images);
     isFirstStart = false;
