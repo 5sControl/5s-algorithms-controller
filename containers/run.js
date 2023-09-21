@@ -91,7 +91,7 @@ const removeContainers = async (images) => {
   for (const image of images) {
     console.log(`Image: ${image}`);
 
-    await removeContainerByImage(image);
+    await removeContainerByImage(image.replace('/', '_'));
   }
 };
 
