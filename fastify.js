@@ -307,7 +307,7 @@ fastify.post('/run', async (req, res) => {
     }
 
     const pid = randomInt();
-    const containerName = `${image.replace(/[\/:]/g, '/')}_${pid}`;
+    const containerName = `${image.replace(/[/:]/g, '_')}_${pid}`;
 
     let container = await startContainer(image, containerName, envVars);
     if (!container) {
