@@ -17,7 +17,7 @@ const {
   getContainersStats,
   readContainerLogs,
 } = require('./containers/run');
-const { images } = require('./containers/images');
+// const { images } = require('./containers/images');
 const {
   validationEndpointRun,
   validationEndpointRunMinMaxAlgorithm,
@@ -74,7 +74,7 @@ fastify.get('/logs', async (req, res) => {
   const { taskId } = req.query;
   if (!taskId) return res.send({ status: false, error: 'taskId is required' });
   if (!algorithms[taskId]) return res.send({ status: false, error: 'task not found' });
-  const container = pythonAlgorithms[algorithms[taskId].camera_url][algorithms[taskId].algorithm];
+  const container = pythonAlgorithms[algorithms[taskId].camera_url][algorithms[taskId].image];
   const logs = await readContainerLogs(container);
   res.send({ status: true, logs });
 });
