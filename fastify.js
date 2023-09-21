@@ -24,7 +24,7 @@ const {
 } = require('./validations/validations');
 isExists('images');
 const io = require('socket.io-client');
-
+const axios = require('axios');
 const algorithms = {};
 let isFirstStart = true;
 const SERVER_IP = process.env.IP;
@@ -82,41 +82,200 @@ fastify.get('/logs', async (req, res) => {
 // algorithm: 'machine_control',
 // camera_url: 'rtsp://admin:just4Taqtile@192.168.1.168/h264_stream',
 // server_url: 'http://192.168.1.110'
+// fastify.post('/run', async (req, res) => {
+//   if (isFirstStart) {
+//     console.log('<<<<<<<<<remove containers>>>>>>>>');
+//     await removeContainers(images);
+//     isFirstStart = false;
+//   }
+//   console.log(req.body, 'req.body');
+
+//   try {
+//     let validationError = validationEndpointRun(req.body);
+//     if (validationError) {
+//       res.send({ status: false, error: validationError });
+//       return;
+//     }
+
+//     validationError = validationEndpointRunMinMaxAlgorithm(req.body);
+//     if (validationError) {
+//       console.log(validationError, 'validationError');
+//       res.send({ status: false, error: validationError });
+//       return;
+//     }
+//   } catch (e) {
+//     console.log(e, 'validatio error catch');
+//     res.send({ status: false, error: 'Validation error' });
+//     return;
+//   }
+
+//   const { camera_url, algorithm, server_url, extra } = req.body;
+//   console.log({ algorithm, camera_url, server_url, extra });
+//   const parsedUrl = new URL(camera_url);
+//   const ip = parsedUrl.hostname;
+
+//   // is algorithms allready started
+//   try {
+//     if (pythonAlgorithms[camera_url] && pythonAlgorithms[camera_url][algorithm]) {
+//       res.send({ status: false, error: 'Algorithm allready started' });
+//       return;
+//     }
+//   } catch (e) {
+//     res.send({ status: false, error: 'Validation error' });
+//     return;
+//   }
+
+//   try {
+//     const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
+//     let cameraUrlEnv = `camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot`;
+//     if (hostname !== SERVER_IP) {
+//       cameraUrlEnv += `?camera_ip=${hostname}`;
+//     }
+//     const envVars = [cameraUrlEnv];
+//     envVars.push(`username=${username}`);
+//     envVars.push(`password=${password}`);
+//     envVars.push(`server_url=${server_url}`);
+//     envVars.push(`folder=images/${hostname}`);
+//     envVars.push(`camera_ip=${hostname}`);
+//     if (!!req.body.extra) {
+//       const areas = req.body.extra;
+//       const areasStr = JSON.stringify(areas);
+//       console.log(areasStr, 'areasStr');
+//       envVars.push(`areas=${areasStr}`);
+//       envVars.push(`extra=${areasStr}`);
+//     }
+
+//     const pid = randomInt();
+//     const image = images[algorithm][images[algorithm].length - 1];
+//     const version = image.split(':')[1];
+//     let container = await startContainer(image, algorithm + '_' + version + '_' + pid, envVars);
+//     if (!container) {
+//       res.send({ status: false, error: 'Start container error' });
+//       return;
+//     }
+//     if (pythonAlgorithms[camera_url]) {
+//       pythonAlgorithms[camera_url][algorithm] = container;
+//     } else {
+//       pythonAlgorithms[camera_url] = {};
+//       pythonAlgorithms[camera_url][algorithm] = container;
+//     }
+
+//     algorithms[pid] = { camera_url, algorithm, image, version };
+
+//     res.send({ status: true, pid: pid });
+//     return;
+//   } catch (e) {
+//     console.log(e, 'e');
+//     res.send({ status: false, error: 'Start python algorithm error' });
+//     return;
+//   }
+// });
+
+fastify.post('/stop', async (req, res) => {
+  try {
+    const { pid } = req.body;
+    console.log(`stop alg with ${pid} pid`);
+
+    if (pid && !algorithms[pid]) {
+      res.send({ status: false, error: 'Algorithm wasn`t found' });
+      return;
+    }
+
+    // stop python algorithms
+    if (pid && algorithms[pid]) {
+      const isContainerRemoved = await removeContainer(
+        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].image],
+      );
+      if (isContainerRemoved) {
+        res.send({ status: true });
+        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].image] = false;
+        delete algorithms[pid];
+      } else {
+        res.send({ status: false, error: 'Container wasn`t stopped' });
+      }
+
+      return;
+    }
+
+    res.send({ status: false, error: 'Algorithm wasn`t stopped' });
+  } catch (e) {
+    console.log(e, 'e');
+    res.send({ status: false, error: 'Stop algorithm error' });
+    return;
+  }
+});
+
+// fastify.post('/stop', async (req, res) => {
+//   try {
+//     const { pid } = req.body;
+//     console.log(`stop alg with ${pid} pid`);
+
+//     if (pid && !algorithms[pid]) {
+//       res.send({ status: false, error: 'Algorithm wasn`t found' });
+//       return;
+//     }
+
+//     // stop python algorithms
+//     if (pid && algorithms[pid]) {
+//       const isContainerRemoved = await removeContainer(
+//         pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm],
+//       );
+//       if (isContainerRemoved) {
+//         res.send({ status: true });
+//         pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm] = false;
+//         delete algorithms[pid];
+//       } else {
+//         res.send({ status: false, error: 'Container wasn`t stopped' });
+//       }
+
+//       return;
+//     }
+
+//     res.send({ status: false, error: 'Algorithm wasn`t stopped' });
+//   } catch (e) {
+//     console.log(e, 'e');
+//     res.send({ status: false, error: 'Stop algorithm error' });
+//     return;
+//   }
+// });
+
 fastify.post('/run', async (req, res) => {
   if (isFirstStart) {
     console.log('<<<<<<<<<remove containers>>>>>>>>');
+    const { data: images } = await axios.get(`http://${SERVER_IP}:80/getImages`);
+    console.log(images);
     await removeContainers(images);
     isFirstStart = false;
   }
   console.log(req.body, 'req.body');
 
-  try {
-    let validationError = validationEndpointRun(req.body);
-    if (validationError) {
-      res.send({ status: false, error: validationError });
-      return;
-    }
+  // try {
+  //   let validationError = validationEndpointRun(req.body);
+  //   if (validationError) {
+  //     res.send({ status: false, error: validationError });
+  //     return;
+  //   }
 
-    validationError = validationEndpointRunMinMaxAlgorithm(req.body);
-    if (validationError) {
-      console.log(validationError, 'validationError');
-      res.send({ status: false, error: validationError });
-      return;
-    }
-  } catch (e) {
-    console.log(e, 'validatio error catch');
-    res.send({ status: false, error: 'Validation error' });
-    return;
-  }
+  //   validationError = validationEndpointRunMinMaxAlgorithm(req.body);
+  //   if (validationError) {
+  //     console.log(validationError, 'validationError');
+  //     res.send({ status: false, error: validationError });
+  //     return;
+  //   }
+  // } catch (e) {
+  //   console.log(e, 'validatio error catch');
+  //   res.send({ status: false, error: 'Validation error' });
+  //   return;
+  // }
 
-  const { camera_url, algorithm, server_url, extra } = req.body;
-  console.log({ algorithm, camera_url, server_url, extra });
+  const { camera_url, server_url, image_name: image, extra } = req.body;
+  console.log({ camera_url, server_url, extra, image });
   const parsedUrl = new URL(camera_url);
   const ip = parsedUrl.hostname;
 
   // is algorithms allready started
   try {
-    if (pythonAlgorithms[camera_url] && pythonAlgorithms[camera_url][algorithm]) {
+    if (pythonAlgorithms[camera_url] && pythonAlgorithms[camera_url][image]) {
       res.send({ status: false, error: 'Algorithm allready started' });
       return;
     }
@@ -146,61 +305,27 @@ fastify.post('/run', async (req, res) => {
     }
 
     const pid = randomInt();
-    const image = images[algorithm][images[algorithm].length - 1];
-    const version = image.split(':')[1];
-    let container = await startContainer(image, algorithm + '_' + version + '_' + pid, envVars);
+    const containerName = `${image}_${pid}`;
+
+    let container = await startContainer(image, containerName, envVars);
     if (!container) {
       res.send({ status: false, error: 'Start container error' });
       return;
     }
     if (pythonAlgorithms[camera_url]) {
-      pythonAlgorithms[camera_url][algorithm] = container;
+      pythonAlgorithms[camera_url][image] = container;
     } else {
       pythonAlgorithms[camera_url] = {};
-      pythonAlgorithms[camera_url][algorithm] = container;
+      pythonAlgorithms[camera_url][image] = container;
     }
 
-    algorithms[pid] = { camera_url, algorithm, image, version };
+    algorithms[pid] = { camera_url, image };
 
     res.send({ status: true, pid: pid });
     return;
   } catch (e) {
     console.log(e, 'e');
     res.send({ status: false, error: 'Start python algorithm error' });
-    return;
-  }
-});
-
-fastify.post('/stop', async (req, res) => {
-  try {
-    const { pid } = req.body;
-    console.log(`stop alg with ${pid} pid`);
-
-    if (pid && !algorithms[pid]) {
-      res.send({ status: false, error: 'Algorithm wasn`t found' });
-      return;
-    }
-
-    // stop python algorithms
-    if (pid && algorithms[pid]) {
-      const isContainerRemoved = await removeContainer(
-        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm],
-      );
-      if (isContainerRemoved) {
-        res.send({ status: true });
-        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm] = false;
-        delete algorithms[pid];
-      } else {
-        res.send({ status: false, error: 'Container wasn`t stopped' });
-      }
-
-      return;
-    }
-
-    res.send({ status: false, error: 'Algorithm wasn`t stopped' });
-  } catch (e) {
-    console.log(e, 'e');
-    res.send({ status: false, error: 'Stop algorithm error' });
     return;
   }
 });
