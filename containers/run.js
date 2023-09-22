@@ -193,7 +193,7 @@ const getContainersStats = async (algorithms, pythonAlgorithms) => {
   const algorithmsDataToSend = {};
   for (const alg in algorithms) {
     let { version, algorithm, image, camera_url } = algorithms[alg];
-    const container = pythonAlgorithms[camera_url][algorithm];
+    const container = pythonAlgorithms[camera_url][image];
     const status = await readContainerStatus(container);
     let { previousStats, currentStats } = await readContainerStats(container);
     const { memory_stats } = currentStats;
