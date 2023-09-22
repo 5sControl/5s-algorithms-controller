@@ -17,7 +17,6 @@ const {
   getContainersStats,
   readContainerLogs,
 } = require('./containers/run');
-// const { images } = require('./containers/images');
 const {
   validationEndpointRun,
   validationEndpointRunMinMaxAlgorithm,
@@ -270,8 +269,8 @@ fastify.post('/run', async (req, res) => {
   //   return;
   // }
 
-  const { camera_url, server_url, image_name: image, extra } = req.body;
-  console.log({ camera_url, server_url, extra, image });
+  const { camera_url, server_url, algorithm, image_name: image, extra } = req.body;
+  console.log({ camera_url, server_url, extra, image, algorithm });
   const parsedUrl = new URL(camera_url);
   const ip = parsedUrl.hostname;
 
@@ -298,6 +297,7 @@ fastify.post('/run', async (req, res) => {
     envVars.push(`server_url=${server_url}`);
     envVars.push(`folder=images/${hostname}`);
     envVars.push(`camera_ip=${hostname}`);
+    envVars.push(`algorithm_name=${algorithm}`);
     if (!!req.body.extra) {
       const areas = req.body.extra;
       const areasStr = JSON.stringify(areas);
@@ -307,7 +307,7 @@ fastify.post('/run', async (req, res) => {
     }
 
     const pid = randomInt();
-    const containerName = `${image.replace(/[/:]/g, '_')}_${pid}`;
+    const containerName = `${algorithm}_${pid}`;
 
     let container = await startContainer(image, containerName, envVars);
     if (!container) {
@@ -321,7 +321,7 @@ fastify.post('/run', async (req, res) => {
       pythonAlgorithms[camera_url][image] = container;
     }
 
-    algorithms[pid] = { camera_url, image };
+    algorithms[pid] = { camera_url, image, algorithm };
 
     res.send({ status: true, pid: pid });
     return;
@@ -332,68 +332,7 @@ fastify.post('/run', async (req, res) => {
   }
 });
 
-fastify.post('/info', async (req, res) => {
-  const idleImage = images.idle_control[images.idle_control.length - 1];
-  const minMaxImage = images.min_max_control[images.min_max_control.length - 1];
-  const idleVersion = idleImage.split(':')[1];
-  const minMaxVersion = minMaxImage.split(':')[1];
-
-  const operationImage = images.operation_control[images.operation_control.length - 1];
-  const operationVersion = operationImage.split(':')[1];
-  const machineImage = images.machine_control[images.machine_control.length - 1];
-  const machineVersion = machineImage.split(':')[1];
-  const machineJsImage = images.machine_control_js[images.machine_control_js.length - 1];
-  const machineJsVersion = machineJsImage.split(':')[1];
-
-  res.send([
-    {
-      name: 'Idle Control PYTHON',
-      version: idleVersion,
-      date: '09.13.2023',
-      description:
-        'Designed to ensure that employees stay focused and on-task, preventing distractions' +
-        ' such as talking on the phone, smoking breaks, and other time-wasting activities. With Idle Control, ' +
-        'employers can monitor employee activity and productivity to ensure maximum efficiency. ',
-    },
-    {
-      name: 'MinMax Control PYTHON',
-      version: minMaxVersion,
-      date: '09.20.2023',
-      description:
-        'Designed to ensure that optimal stock levels are maintained. ' +
-        'This type of control helps to make informed decisions about when & how much to order. ' +
-        'You can avoid overstocking or stockouts, preventing costly production line stoppages and lost profits.',
-    },
-    {
-      name: 'Operation Control',
-      version: operationVersion,
-      date: '08.31.2023',
-      description:
-        'Designed to ensure that the necessary number of operations are executed while cleaning seams during production.' +
-        ' This type of control helps to streamline the process and prevent any errors or omissions that could lead to costly production delays. ',
-    },
-    {
-      name: 'Machine Control Python',
-      version: machineVersion,
-      date: '09.20.2023',
-      description:
-        'Designed to ensure that the machine is not left unsupervised, which' +
-        ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
-        'This control is essential in workplaces where machines are used, such as factories, ' +
-        'construction sites, or warehouses.',
-    },
-    {
-      name: 'Machine Control Js',
-      version: machineJsVersion,
-      date: '09.20.2023',
-      description:
-        'Designed to ensure that the machine is not left unsupervised, which' +
-        ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
-        'This control is essential in workplaces where machines are used, such as factories, ' +
-        'construction sites, or warehouses.',
-    },
-  ]);
-});
+fastify.post('/info', async (req, res) => {});
 
 fastify.listen({ port: 3333, host: '0.0.0.0' }, (err, address) => {
   if (err) throw err;

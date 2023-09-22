@@ -156,6 +156,12 @@ async function readContainerLogs(container) {
   }
 }
 
+async function getImages() {
+  const images = await docker.image.list();
+
+  console.log(images);
+}
+
 async function readContainerStatus(container) {
   try {
     let status = await container.status();
@@ -186,7 +192,7 @@ function calculateContainerCpuLoad(currentCpuStats, previousCpuStats) {
 const getContainersStats = async (algorithms, pythonAlgorithms) => {
   const algorithmsDataToSend = {};
   for (const alg in algorithms) {
-    let { version, image: algorithm, camera_url } = algorithms[alg];
+    let { version, algorithm, image, camera_url } = algorithms[alg];
     const container = pythonAlgorithms[camera_url][algorithm];
     const status = await readContainerStatus(container);
     let { previousStats, currentStats } = await readContainerStats(container);
@@ -204,7 +210,7 @@ const getContainersStats = async (algorithms, pythonAlgorithms) => {
     let gpu = '0%';
 
     const additionalData = { cpu, ram, status, gpu };
-    algorithmsDataToSend[alg] = { algorithm, camera_url, ...additionalData };
+    algorithmsDataToSend[alg] = { ...algorithms[alg], ...additionalData };
     const ipPattern = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
     const match = ipPattern.exec(camera_url);
     if (match) {
