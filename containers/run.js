@@ -145,13 +145,21 @@ export const readContainerLogs = async (container) => {
   }
 };
 
-export const searchImageOnDockerHub = async (imageName, tag) => {
-  const images = await docker.image.search({ term: imageName, tag });
-
-  console.log(images);
+export const searchImage = async (imageName, tag = 'latest') => {
+  const image = docker.image.get(`${imageName}:${tag}`);
+  return image.status().catch(() => null);
 };
 
-export const pullImageFromDockerHub = async (imageName, tag) => {
+export const searchImageOnDockerHub = async (imageName) => {
+  const images = await docker.image.search({ term: imageName });
+
+  const searchedImage = images[0];
+  if (searchedImage.name !== imageName) throw new Error('Image not found');
+
+  return searchedImage;
+};
+
+export const pullImageFromDockerHub = async (imageName, tag = 'latest') => {
   return docker.image
     .create({}, { fromImage: imageName, tag: tag })
     .then(() => {

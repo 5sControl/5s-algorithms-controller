@@ -11,6 +11,7 @@ import {
   readContainerLogs,
   pullImageFromDockerHub,
   searchImageOnDockerHub,
+  searchImage,
 } from './containers/run.js';
 import {
   validationEndpointRun,
@@ -214,20 +215,27 @@ fastify.post('/run', async (req, res) => {
 });
 
 fastify.get('/image/search', async (req, res) => {
-  const { image_name } = req.params;
+  try {
+    const { image_name } = req.query;
 
-  console.log(tag);
-  const [imageName, tag] = image_name.split(':');
+    const [imageName, tag] = image_name.split(':');
 
-  const image = await searchImageOnDockerHub(imageName, tag);
+    const image = await searchImage(imageName, tag);
 
-  return image;
+    if (image) return { status: true, download: true };
+
+    await searchImageOnDockerHub(imageName);
+
+    return { status: true, download: false };
+  } catch (e) {
+    console.log(e.message);
+    return { status: false, error: e.message };
+  }
 });
 
 fastify.get('/image/download', async (req, res) => {
   const { image_name } = req.params;
 
-  console.log(tag);
   const [imageName, tag] = image_name.split(':');
 
   const image = await pullImageFromDockerHub(imageName, tag);
