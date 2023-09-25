@@ -171,9 +171,12 @@ export const pullImageFromDockerHub = async (imageName, tag = 'latest') => {
     .create({}, { fromImage: imageName, tag })
     .then((stream) => promisifyStream(stream))
     .then(() => docker.image.get(`${imageName}:${tag}`))
+    .catch((e) => {
+      if (e.statusCode === 404) e.message = 'Image not found on Docker Hub';
+      throw e;
+    })
     .then((image) => image.history())
-    .then((history) => new Date(history[0].Created * 1000))
-    .catch((error) => console.log(error));
+    .then((history) => new Date(history[0].Created * 1000));
 };
 
 export const readContainerStatus = async (container) => {
