@@ -1,7 +1,7 @@
-const Docker = require('node-docker-api').Docker;
+import { Docker } from 'node-docker-api';
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
-const startContainer = async (
+export const startContainer = async (
   image = 'test_ref',
   name = 'test_ref',
   envVars = ['camera_url=http://192.168.1.162/onvif-http/snapshot?Profile_1'],
@@ -38,7 +38,7 @@ const startContainer = async (
   }
 };
 
-const removeContainer = async (container) => {
+export const removeContainer = async (container) => {
   try {
     const deletedContainer = await container.delete({ force: true });
     return true;
@@ -68,7 +68,7 @@ const removeContainer = async (container) => {
 //   }
 // };
 
-const removeContainerByImage = async (imageName) => {
+export const removeContainerByImage = async (imageName) => {
   try {
     const containers = await docker.container.list({ all: true });
 
@@ -87,7 +87,7 @@ const removeContainerByImage = async (imageName) => {
   }
 };
 
-const removeContainers = async (images) => {
+export const removeContainers = async (images) => {
   for (const image of images) {
     console.log(`Image: ${image}`);
 
@@ -95,18 +95,7 @@ const removeContainers = async (images) => {
   }
 };
 
-// const removeContainers = async (images) => {
-//   for (const [key, imageArray] of Object.entries(images)) {
-//     console.log(`Key: ${key}`);
-//     console.log(`Images: ${imageArray.join(', ')}`);
-
-//     for (const image of imageArray) {
-//       await removeContainerByImage(image.split(':')[0]);
-//     }
-//   }
-// };
-
-async function readContainerStats(container) {
+export const readContainerStats = async (container) => {
   try {
     const statsStream = await container.stats();
     const chunks = [];
@@ -127,9 +116,9 @@ async function readContainerStats(container) {
     console.error('Error:', err);
     throw err;
   }
-}
+};
 
-async function readContainerLogs(container) {
+export const readContainerLogs = async (container) => {
   try {
     const logs = [];
     // const stream = await container.logs({follow: true, stdout: true, stderr: true})
@@ -154,15 +143,29 @@ async function readContainerLogs(container) {
     console.error('Error:', err);
     throw err;
   }
-}
+};
 
-async function getImages() {
-  const images = await docker.image.list();
+export const searchImageOnDockerHub = async (imageName, tag) => {
+  const images = await docker.image.search({ term: imageName, tag });
 
   console.log(images);
-}
+};
 
-async function readContainerStatus(container) {
+export const pullImageFromDockerHub = async (imageName, tag) => {
+  return docker.image
+    .create({}, { fromImage: imageName, tag: tag })
+    .then(() => {
+      return docker.image.get(`${term}:${tag}`);
+    })
+    .then((image) => image.history());
+
+  // const image = docker.image.get(`${term}:15`);
+  // console.log(await image.history());
+
+  return image;
+};
+
+export const readContainerStatus = async (container) => {
   try {
     let status = await container.status();
     status = status.data.State.Status;
@@ -171,9 +174,9 @@ async function readContainerStatus(container) {
     console.error('Error:', err);
     throw err;
   }
-}
+};
 
-function calculateContainerCpuLoad(currentCpuStats, previousCpuStats) {
+export const calculateContainerCpuLoad = async (currentCpuStats, previousCpuStats) => {
   const currentTotalUsage = currentCpuStats.cpu_usage.total_usage;
   const previousTotalUsage = previousCpuStats.cpu_usage.total_usage;
 
@@ -187,9 +190,9 @@ function calculateContainerCpuLoad(currentCpuStats, previousCpuStats) {
   const cpuLoadPercentage = (cpuDelta / systemDelta) * online_cpus * 100;
 
   return cpuLoadPercentage.toFixed(2);
-}
+};
 
-const getContainersStats = async (algorithms, pythonAlgorithms) => {
+export const getContainersStats = async (algorithms, pythonAlgorithms) => {
   const algorithmsDataToSend = {};
   for (const alg in algorithms) {
     let { version, algorithm, image, camera_url } = algorithms[alg];
@@ -218,13 +221,4 @@ const getContainersStats = async (algorithms, pythonAlgorithms) => {
     }
   }
   return algorithmsDataToSend;
-};
-
-module.exports = {
-  startContainer,
-  removeContainer,
-  removeContainerByImage,
-  removeContainers,
-  getContainersStats,
-  readContainerLogs,
 };
