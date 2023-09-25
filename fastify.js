@@ -234,13 +234,17 @@ fastify.get('/image/search', async (req, res) => {
 });
 
 fastify.get('/image/download', async (req, res) => {
-  const { image_name } = req.params;
+  try {
+    const { image_name } = req.query;
 
-  const [imageName, tag] = image_name.split(':');
+    const [imageName, tag] = image_name.split(':');
 
-  const image = await pullImageFromDockerHub(imageName, tag);
+    const dateCreated = await pullImageFromDockerHub(imageName, tag);
 
-  return image;
+    return { status: true, date: dateCreated };
+  } catch (e) {
+    return { status: false, error: e.message };
+  }
 });
 
 fastify.listen({ port: 3333, host: '0.0.0.0' }, (err, address) => {

@@ -159,18 +159,21 @@ export const searchImageOnDockerHub = async (imageName) => {
   return searchedImage;
 };
 
+const promisifyStream = (stream) =>
+  new Promise((resolve, reject) => {
+    stream.on('data', (data) => data);
+    stream.on('end', resolve);
+    stream.on('error', reject);
+  });
+
 export const pullImageFromDockerHub = async (imageName, tag = 'latest') => {
   return docker.image
-    .create({}, { fromImage: imageName, tag: tag })
-    .then(() => {
-      return docker.image.get(`${term}:${tag}`);
-    })
-    .then((image) => image.history());
-
-  // const image = docker.image.get(`${term}:15`);
-  // console.log(await image.history());
-
-  return image;
+    .create({}, { fromImage: imageName, tag })
+    .then((stream) => promisifyStream(stream))
+    .then(() => docker.image.get(`${imageName}:${tag}`))
+    .then((image) => image.history())
+    .then((history) => new Date(history[0].Created * 1000))
+    .catch((error) => console.log(error));
 };
 
 export const readContainerStatus = async (container) => {
