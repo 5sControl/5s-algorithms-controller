@@ -224,7 +224,7 @@ fastify.get('/image/search', async (req, res) => {
 
     if (image) return { status: true, download: true };
 
-    await searchImageOnDockerHub(imageName);
+    await searchImageOnDockerHub(imageName, tag);
 
     return { status: true, download: false };
   } catch (e) {

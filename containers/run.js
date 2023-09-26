@@ -1,4 +1,5 @@
 import { Docker } from 'node-docker-api';
+import axios from 'axios';
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 
 export const startContainer = async (
@@ -150,13 +151,18 @@ export const searchImage = async (imageName, tag = 'latest') => {
   return image.status().catch(() => null);
 };
 
-export const searchImageOnDockerHub = async (imageName) => {
-  const images = await docker.image.search({ term: imageName });
-
-  const searchedImage = images[0];
-  if (searchedImage.name !== imageName) throw new Error('Image not found');
-
-  return searchedImage;
+export const searchImageOnDockerHub = async (imageName, tag = 'latest') => {
+  try {
+    const image = await axios.get(
+      `https://hub.docker.com/v2/repositories/${imageName}/tags/${tag}`,
+    );
+    return image.data;
+  } catch (e) {
+    // console.log(e);
+    if (e.response.status === 404)
+      throw new Error(`Image ${imageName}:${tag} not found on Docker Hub`);
+    throw e;
+  }
 };
 
 const promisifyStream = (stream) =>
