@@ -221,8 +221,7 @@ fastify.get('/image/search', async (req, res) => {
     const [imageName, tag] = image_name.split(':');
 
     const image = await searchImage(imageName, tag);
-
-    if (image) return { status: true, download: true, date: new Date(image.data.Created) };
+    if (image) return { status: true, download: true, date: image.data.Created };
 
     await searchImageOnDockerHub(imageName, tag);
 
@@ -239,9 +238,9 @@ fastify.get('/image/download', async (req, res) => {
 
     const [imageName, tag] = image_name.split(':');
 
-    const dateCreated = await pullImageFromDockerHub(imageName, tag);
+    const image = await pullImageFromDockerHub(imageName, tag);
 
-    return { status: true, date: dateCreated };
+    return { status: true, date: image.data.Created };
   } catch (e) {
     return { status: false, error: e.message };
   }

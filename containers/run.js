@@ -181,8 +181,7 @@ export const pullImageFromDockerHub = async (imageName, tag = 'latest') => {
       if (e.statusCode === 404) e.message = 'Image not found on Docker Hub';
       throw e;
     })
-    .then((image) => image.history())
-    .then((history) => new Date(history[0].Created * 1000));
+    .then((image) => image.status());
 };
 
 export const readContainerStatus = async (container) => {
