@@ -151,7 +151,7 @@ fastify.post('/run', async (req, res) => {
   //   return;
   // }
 
-  const { camera_url, server_url, algorithm, image_name: image, extra } = req.body;
+  const { camera_url, server_url, algorithm, link_reports, image_name: image, extra } = req.body;
   console.log({ camera_url, server_url, extra, image, algorithm });
   const parsedUrl = new URL(camera_url);
   const ip = parsedUrl.hostname;
@@ -177,6 +177,7 @@ fastify.post('/run', async (req, res) => {
     envVars.push(`username=${username}`);
     envVars.push(`password=${password}`);
     envVars.push(`server_url=${server_url}`);
+    envVars.push(`server_url=${link_reports}`);
     envVars.push(`folder=images/${hostname}`);
     envVars.push(`camera_ip=${hostname}`);
     envVars.push(`algorithm_name=${algorithm}`);
