@@ -6,6 +6,7 @@ import { isExists, randomInt, parseRTSPuri } from './utils/index.js';
 import {
   startContainer,
   removeContainer,
+  removeContainers,
   getContainersStats,
   readContainerLogs,
   pullImageFromDockerHub,
