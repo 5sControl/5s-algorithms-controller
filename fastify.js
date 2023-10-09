@@ -6,7 +6,6 @@ import { isExists, randomInt, parseRTSPuri } from './utils/index.js';
 import {
   startContainer,
   removeContainer,
-  removeContainers,
   getContainersStats,
   readContainerLogs,
   pullImageFromDockerHub,
@@ -35,6 +34,7 @@ isExists('images');
 const algorithms = {};
 let isFirstStart = true;
 const SERVER_IP = process.env.IP;
+const RUNNING_ON_K8S = process.env.K8S;
 const pythonAlgorithms = {};
 
 const socket = io(`http://${SERVER_IP}:3456`);
@@ -121,7 +121,7 @@ fastify.post('/stop', async (req, res) => {
 });
 
 fastify.post('/run', async (req, res) => {
-  if (isFirstStart) {
+  if (isFirstStart && !RUNNING_ON_K8S) {
     console.log('<<<<<<<<<remove containers>>>>>>>>');
     const { data: images } = await axios.get(
       `http://${SERVER_IP}:80/api/camera-algorithms/unique-image-names`,
@@ -168,26 +168,27 @@ fastify.post('/run', async (req, res) => {
   }
 
   try {
-    const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
-    let cameraUrlEnv = `camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot`;
-    if (hostname !== SERVER_IP) {
-      cameraUrlEnv += `?camera_ip=${hostname}`;
-    }
-    const envVars = [cameraUrlEnv];
-    envVars.push(`username=${username}`);
-    envVars.push(`password=${password}`);
-    envVars.push(`server_url=${server_url}`);
-    envVars.push(`link_reports=${link_reports}`);
-    envVars.push(`folder=images/${hostname}`);
-    envVars.push(`camera_ip=${hostname}`);
-    envVars.push(`algorithm_name=${algorithm}`);
-    if (!!req.body.extra) {
-      const areas = req.body.extra;
-      const areasStr = JSON.stringify(areas);
-      console.log(areasStr, 'areasStr');
-      envVars.push(`areas=${areasStr}`);
-      envVars.push(`extra=${areasStr}`);
-    }
+    if (!RUNNING_ON_K8S) {
+      const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
+      let cameraUrlEnv = `camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot`;
+      if (hostname !== SERVER_IP) {
+        cameraUrlEnv += `?camera_ip=${hostname}`;
+      }
+      const envVars = [cameraUrlEnv];
+      envVars.push(`username=${username}`);
+      envVars.push(`password=${password}`);
+      envVars.push(`server_url=${server_url}`);
+      envVars.push(`link_reports=${link_reports}`);
+      envVars.push(`folder=images/${hostname}`);
+      envVars.push(`camera_ip=${hostname}`);
+      envVars.push(`algorithm_name=${algorithm}`);
+      if (!!req.body.extra) {
+        const areas = req.body.extra;
+        const areasStr = JSON.stringify(areas);
+        console.log(areasStr, 'areasStr');
+        envVars.push(`areas=${areasStr}`);
+        envVars.push(`extra=${areasStr}`);
+      }
 
     const pid = randomInt();
     const containerName = `${algorithm.replace(/[/:]/g, '_')}_${pid}`;
@@ -208,13 +209,49 @@ fastify.post('/run', async (req, res) => {
 
     res.send({ status: true, pid: pid });
     return;
+    } else {
+      const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
+      let envVars = [{name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot`}];
+      if (hostname !== SERVER_IP) {
+        envVars = [{name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot?camera_ip=${hostname}`}];
+      }
+      envVars.push({name: 'username', value: username});
+      envVars.push({name: 'password', value: password});
+      envVars.push({name: 'server_url', value: server_url});
+      envVars.push({name: 'folder', value: `images/${hostname}`});
+      envVars.push({name: 'algorithm_name', value: algorithm});
+      if (!!req.body.extra) {
+        const areas = req.body.extra;
+        const areasStr = JSON.stringify(areas);
+        console.log(areasStr, 'areasStr');
+        envVars.push({name: 'areas', value: areasStr});
+        envVars.push({name: 'extra', value: areasStr});
+      }
+
+    let pod = await startContainer(image, algorithm, envVars);
+    if (!pod) {
+      res.send({ status: false, error: 'Start container error' });
+      return;
+    }
+    if (pythonAlgorithms[camera_url]) {
+      pythonAlgorithms[camera_url][image] = pod;
+    } else {
+      pythonAlgorithms[camera_url] = {};
+      pythonAlgorithms[camera_url][image] = pod;
+    }
+
+    algorithms[pod] = { camera_url, image, algorithm };
+
+    res.send({ status: true, pid: +pod });
+    return;
+    }
+
   } catch (e) {
     console.log(e, 'e');
     res.send({ status: false, error: 'Start python algorithm error' });
     return;
   }
 });
-
 fastify.get('/image/search', async (req, res) => {
   try {
     const { image_name } = req.query;
