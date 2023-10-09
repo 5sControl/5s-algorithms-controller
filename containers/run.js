@@ -1,6 +1,8 @@
 import { Docker } from 'node-docker-api';
 import axios from 'axios';
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+const K8S_MASTER_IP = process.env.K8S_MASTER_IP || '192.168.1.115';
+const RUNNING_ON_K8S = process.env.K8S;
 
 export const startContainer = async (
   image = 'test_ref',
@@ -8,7 +10,8 @@ export const startContainer = async (
   envVars = ['camera_url=http://192.168.1.162/onvif-http/snapshot?Profile_1'],
 ) => {
   try {
-    const container = await docker.container.create({
+    if (!RUNNING_ON_K8S) {
+      const container = await docker.container.create({
       image: image,
       name: name,
       Env: envVars,
@@ -33,16 +36,30 @@ export const startContainer = async (
     });
     const startedContainer = await container.start();
     return startedContainer;
+    } else {
+      const body = {image, name, envVariables}
+      const response = await axios.post(
+      `http://${K8S_MASTER_IP}:4545/create-pod`, body
+      );
+      return response.data?.name || null;
+      }
   } catch (e) {
     console.log(e, 'e');
     return false;
   }
 };
 
-export const removeContainer = async (container) => {
+export const removeContainer = async (pod) => {
   try {
-    const deletedContainer = await container.delete({ force: true });
+    if (!RUNNING_ON_K8S) {
+      const deletedContainer = await container.delete({ force: true });
     return true;
+    } else {
+      const response = await axios.post(
+      `http://${K8S_MASTER_IP}:4545/stop-pod`, {pod}
+    );
+    return response.data?.success;
+    }
   } catch (e) {
     console.log(e, 'e');
     return false;
@@ -212,7 +229,8 @@ export const calculateContainerCpuLoad = async (currentCpuStats, previousCpuStat
 };
 
 export const getContainersStats = async (algorithms, pythonAlgorithms) => {
-  const algorithmsDataToSend = {};
+  try {
+    const algorithmsDataToSend = {};
   for (const alg in algorithms) {
     let { version, algorithm, image, camera_url } = algorithms[alg];
     const container = pythonAlgorithms[camera_url][image];
@@ -240,4 +258,9 @@ export const getContainersStats = async (algorithms, pythonAlgorithms) => {
     }
   }
   return algorithmsDataToSend;
+  } catch(e) {
+    console.log(e, 'e')
+    return 'Get stats error'
+  }
+
 };
