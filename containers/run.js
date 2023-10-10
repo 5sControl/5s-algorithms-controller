@@ -3,6 +3,10 @@ import axios from 'axios';
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const K8S_MASTER_IP = process.env.K8S_MASTER_IP || '192.168.1.115';
 const RUNNING_ON_K8S = process.env.K8S;
+const ALGORITMS_TARGET_DEBUG_DIST = process.env.ALGORITMS_TARGET_DEBUG_DIST;
+const ALGORITMS_TARGET_IMAGES_DIST = process.env.ALGORITMS_TARGET_IMAGES_DIST;
+const ALGORITMS_SOURCE_DEBUG_DIST = process.env.ALGORITMS_SOURCE_DEBUG_DIST;
+const ALGORITMS_SOURCE_IMAGES_DIST = process.env.ALGORITMS_SOURCE_IMAGES_DIST;
 
 export const startContainer = async (
   image = 'test_ref',
@@ -12,37 +16,35 @@ export const startContainer = async (
   try {
     if (!RUNNING_ON_K8S) {
       const container = await docker.container.create({
-      image: image,
-      name: name,
-      Env: envVars,
-      HostConfig: {
-        Mounts: [
-          {
-            Type: 'bind',
-            Source: '/home/server/reps/images',
-            Target: '/var/www/5scontrol/images',
-            ReadOnly: false,
-          },
-          {
-            Type: 'bind',
-            Source: '/home/server/reps/debug',
-            Target: '/var/www/5scontrol/debug',
-            ReadOnly: false,
-          },
-        ],
-        CpuQuota: 100000,
-        NetworkMode: 'host',
-      },
-    });
-    const startedContainer = await container.start();
-    return startedContainer;
+        image: image,
+        name: name,
+        Env: envVars,
+        HostConfig: {
+          Mounts: [
+            {
+              Type: 'bind',
+              Source: ALGORITMS_SOURCE_IMAGES_DIST,
+              Target: ALGORITMS_TARGET_IMAGES_DIST,
+              ReadOnly: false,
+            },
+            {
+              Type: 'bind',
+              Source: ALGORITMS_SOURCE_DEBUG_DIST,
+              Target: ALGORITMS_TARGET_DEBUG_DIST,
+              ReadOnly: false,
+            },
+          ],
+          CpuQuota: 100000,
+          NetworkMode: 'host',
+        },
+      });
+      const startedContainer = await container.start();
+      return startedContainer;
     } else {
-      const body = {image, name, envVariables}
-      const response = await axios.post(
-      `http://${K8S_MASTER_IP}:4545/create-pod`, body
-      );
+      const body = { image, name, envVariables };
+      const response = await axios.post(`http://${K8S_MASTER_IP}:4545/create-pod`, body);
       return response.data?.name || null;
-      }
+    }
   } catch (e) {
     console.log(e, 'e');
     return false;
@@ -53,12 +55,10 @@ export const removeContainer = async (pod) => {
   try {
     if (!RUNNING_ON_K8S) {
       const deletedContainer = await container.delete({ force: true });
-    return true;
+      return true;
     } else {
-      const response = await axios.post(
-      `http://${K8S_MASTER_IP}:4545/stop-pod`, {pod}
-    );
-    return response.data?.success;
+      const response = await axios.post(`http://${K8S_MASTER_IP}:4545/stop-pod`, { pod });
+      return response.data?.success;
     }
   } catch (e) {
     console.log(e, 'e');
@@ -231,36 +231,35 @@ export const calculateContainerCpuLoad = async (currentCpuStats, previousCpuStat
 export const getContainersStats = async (algorithms, pythonAlgorithms) => {
   try {
     const algorithmsDataToSend = {};
-  for (const alg in algorithms) {
-    let { version, algorithm, image, camera_url } = algorithms[alg];
-    const container = pythonAlgorithms[camera_url][image];
-    const status = await readContainerStatus(container);
-    let { previousStats, currentStats } = await readContainerStats(container);
-    const { memory_stats } = currentStats;
-    let ram = memory_stats.usage / 1000000; // to mb;
-    let cpu = calculateContainerCpuLoad(currentStats.cpu_stats, previousStats.cpu_stats);
-    if (isNaN(cpu)) {
-      cpu = 0;
-    }
-    if (isNaN(ram)) {
-      ram = 0;
-    }
-    cpu = cpu + '%';
-    ram = ram.toFixed(0) + 'M';
-    let gpu = '0%';
+    for (const alg in algorithms) {
+      let { version, algorithm, image, camera_url } = algorithms[alg];
+      const container = pythonAlgorithms[camera_url][image];
+      const status = await readContainerStatus(container);
+      let { previousStats, currentStats } = await readContainerStats(container);
+      const { memory_stats } = currentStats;
+      let ram = memory_stats.usage / 1000000; // to mb;
+      let cpu = calculateContainerCpuLoad(currentStats.cpu_stats, previousStats.cpu_stats);
+      if (isNaN(cpu)) {
+        cpu = 0;
+      }
+      if (isNaN(ram)) {
+        ram = 0;
+      }
+      cpu = cpu + '%';
+      ram = ram.toFixed(0) + 'M';
+      let gpu = '0%';
 
-    const additionalData = { cpu, ram, status, gpu };
-    algorithmsDataToSend[alg] = { ...algorithms[alg], ...additionalData };
-    const ipPattern = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
-    const match = ipPattern.exec(camera_url);
-    if (match) {
-      algorithmsDataToSend[alg].camera_url = match[0];
+      const additionalData = { cpu, ram, status, gpu };
+      algorithmsDataToSend[alg] = { ...algorithms[alg], ...additionalData };
+      const ipPattern = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/;
+      const match = ipPattern.exec(camera_url);
+      if (match) {
+        algorithmsDataToSend[alg].camera_url = match[0];
+      }
     }
+    return algorithmsDataToSend;
+  } catch (e) {
+    console.log(e, 'e');
+    return 'Get stats error';
   }
-  return algorithmsDataToSend;
-  } catch(e) {
-    console.log(e, 'e')
-    return 'Get stats error'
-  }
-
 };
