@@ -45,6 +45,50 @@ The connections between the project repositories are illustrated by the followin
 
 [Installation Guide Pt.2](https://5controls.com/blog/installing-5s-control-software-part-2-docker)
 
+# **Installation**
+To run the application, you need to install Docker. You can do this by following the instructions specific to your system available at [Docker Installation Guide](https://docs.docker.com/engine/install/).
+
+Please follow the link and select the instructions that match your operating system to install Docker.
+
+To clone the project, use the following Git command:
+
+```shell
+git clone git@github.com:5sControl/5s-backend.git
+```
+
+ **Install Dependencies:**
+
+Install all project dependencies, run the following command using npm:
+```shell
+npm install
+```
+
+ **Create a .env File:**
+
+In the root directory of your project, create a file named .env. You can do this manually or by using command-line text editors like touch or echo (for Unix-based systems) or any text editor of your choice.
+
+For Unix-based systems using the touch command:
+```shell
+touch .env
+```
+**Environment Variables:**
+
+You can reference an example of the environment variables in the `.env.example` file. Here is how they should be defined:
+
+- `IP`: The address of your host. Example: `'192.168.1.101'`
+- `ALGORITHMS_SOURCE_IMAGES_DIST`: The location where you will store algorithm images. Example: `'/media/server/static/images'`
+- `ALGORITHMS_SOURCE_DEBUG_DIST`: The location where debug photos are stored. Example: `'/media/server/static/debug'`
+- `ALGORITHMS_TARGET_IMAGES_DIST`: The mount point for algorithm images in Docker. Example: `'/var/www/5scontrol/images'`
+- `ALGORITHMS_TARGET_DEBUG_DIST`: The mount point for debug photos in Docker. Example: `'/var/www/5scontrol/debug'`
+
+Make sure to create your `.env` file and define these variables with the appropriate values for your project.
+
+**Running the Application:**
+
+- For development, use the following command: `npm run dev`.
+
+- For start, use the following command: `npm run start`.
+
 # **Contributing**
 Thank you for considering contributing to 5controlS. We truly believe that we can build an outstanding product together!
 
