@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon node fastify.js",
-    "start": "nodemon node fastify.js"
+    "start": "node fastify.js"
   },
   "author": "",
   "license": "ISC",
