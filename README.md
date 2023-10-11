@@ -53,7 +53,7 @@ Please follow the link and select the instructions that match your operating sys
 To clone the project, use the following Git command:
 
 ```shell
-git clone git@github.com:5sControl/5s-backend.git
+git@github.com:5sControl/5s-algorithms-controller.git
 ```
 
  **Install Dependencies:**
