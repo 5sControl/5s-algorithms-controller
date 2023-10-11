@@ -1,7 +1,28 @@
-const fastify = require('fastify')({
+import cors from '@fastify/cors';
+import fastyifyApp from 'fastify';
+import io from 'socket.io-client';
+import axios from 'axios';
+import { isExists, randomInt, parseRTSPuri } from './utils/index.js';
+import {
+  startContainer,
+  removeContainer,
+  removeContainers,
+  getContainersStats,
+  readContainerLogs,
+  pullImageFromDockerHub,
+  searchImageOnDockerHub,
+  searchImage,
+} from './containers/run.js';
+import {
+  validationEndpointRun,
+  validationEndpointRunMinMaxAlgorithm,
+} from './validations/validations.js';
+
+const fastify = fastyifyApp({
   logger: true,
 });
-fastify.register(require('@fastify/cors'), (instance) => {
+
+fastify.register(cors, (instance) => {
   return (req, callback) => {
     const corsOptions = {
       origin: true,
@@ -9,25 +30,12 @@ fastify.register(require('@fastify/cors'), (instance) => {
     callback(null, corsOptions);
   };
 });
-const { isExists, randomInt, parseRTSPuri } = require('./utils/');
-const {
-  startContainer,
-  removeContainer,
-  removeContainers,
-  getContainersStats,
-  readContainerLogs,
-} = require('./containers/run');
-const { images } = require('./containers/images');
-const {
-  validationEndpointRun,
-  validationEndpointRunMinMaxAlgorithm,
-} = require('./validations/validations');
-isExists('images');
-const io = require('socket.io-client');
 
+isExists('images');
 const algorithms = {};
 let isFirstStart = true;
 const SERVER_IP = process.env.IP;
+const RUNNING_ON_K8S = process.env.K8S;
 const pythonAlgorithms = {};
 
 const socket = io(`http://${SERVER_IP}:3456`);
@@ -74,101 +82,9 @@ fastify.get('/logs', async (req, res) => {
   const { taskId } = req.query;
   if (!taskId) return res.send({ status: false, error: 'taskId is required' });
   if (!algorithms[taskId]) return res.send({ status: false, error: 'task not found' });
-  const container = pythonAlgorithms[algorithms[taskId].camera_url][algorithms[taskId].algorithm];
+  const container = pythonAlgorithms[algorithms[taskId].camera_url][algorithms[taskId].image];
   const logs = await readContainerLogs(container);
   res.send({ status: true, logs });
-});
-
-// algorithm: 'machine_control',
-// camera_url: 'rtsp://admin:just4Taqtile@192.168.1.168/h264_stream',
-// server_url: 'http://192.168.1.110'
-fastify.post('/run', async (req, res) => {
-  if (isFirstStart) {
-    console.log('<<<<<<<<<remove containers>>>>>>>>');
-    await removeContainers(images);
-    isFirstStart = false;
-  }
-  console.log(req.body, 'req.body');
-
-  try {
-    let validationError = validationEndpointRun(req.body);
-    if (validationError) {
-      res.send({ status: false, error: validationError });
-      return;
-    }
-
-    validationError = validationEndpointRunMinMaxAlgorithm(req.body);
-    if (validationError) {
-      console.log(validationError, 'validationError');
-      res.send({ status: false, error: validationError });
-      return;
-    }
-  } catch (e) {
-    console.log(e, 'validatio error catch');
-    res.send({ status: false, error: 'Validation error' });
-    return;
-  }
-
-  const { camera_url, algorithm, server_url, extra } = req.body;
-  console.log({ algorithm, camera_url, server_url, extra });
-  const parsedUrl = new URL(camera_url);
-  const ip = parsedUrl.hostname;
-
-  // is algorithms allready started
-  try {
-    if (pythonAlgorithms[camera_url] && pythonAlgorithms[camera_url][algorithm]) {
-      res.send({ status: false, error: 'Algorithm allready started' });
-      return;
-    }
-  } catch (e) {
-    res.send({ status: false, error: 'Validation error' });
-    return;
-  }
-
-  try {
-    const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
-    let cameraUrlEnv = `camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot`;
-    if (hostname !== SERVER_IP) {
-      cameraUrlEnv += `?camera_ip=${hostname}`;
-    }
-    const envVars = [cameraUrlEnv];
-    envVars.push(`username=${username}`);
-    envVars.push(`password=${password}`);
-    envVars.push(`server_url=${server_url}`);
-    envVars.push(`folder=images/${hostname}`);
-    envVars.push(`camera_ip=${hostname}`);
-    if (!!req.body.extra) {
-      const areas = req.body.extra;
-      const areasStr = JSON.stringify(areas);
-      console.log(areasStr, 'areasStr');
-      envVars.push(`areas=${areasStr}`);
-      envVars.push(`extra=${areasStr}`);
-    }
-
-    const pid = randomInt();
-    const image = images[algorithm][images[algorithm].length - 1];
-    const version = image.split(':')[1];
-    let container = await startContainer(image, algorithm + '_' + version + '_' + pid, envVars);
-    if (!container) {
-      res.send({ status: false, error: 'Start container error' });
-      return;
-    }
-    if (pythonAlgorithms[camera_url]) {
-      pythonAlgorithms[camera_url][algorithm] = container;
-    } else {
-      pythonAlgorithms[camera_url] = {};
-      pythonAlgorithms[camera_url][algorithm] = container;
-    }
-
-    algorithms[pid] = { camera_url, algorithm, image, version };
-
-    res.send({ status: true, pid: pid });
-    return;
-  } catch (e) {
-    console.log(e, 'e');
-    res.send({ status: false, error: 'Start python algorithm error' });
-    return;
-  }
 });
 
 fastify.post('/stop', async (req, res) => {
@@ -184,11 +100,11 @@ fastify.post('/stop', async (req, res) => {
     // stop python algorithms
     if (pid && algorithms[pid]) {
       const isContainerRemoved = await removeContainer(
-        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm],
+        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].image],
       );
       if (isContainerRemoved) {
         res.send({ status: true });
-        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].algorithm] = false;
+        pythonAlgorithms[algorithms[pid].camera_url][algorithms[pid].image] = false;
         delete algorithms[pid];
       } else {
         res.send({ status: false, error: 'Container wasn`t stopped' });
@@ -205,67 +121,169 @@ fastify.post('/stop', async (req, res) => {
   }
 });
 
-fastify.post('/info', async (req, res) => {
-  const idleImage = images.idle_control[images.idle_control.length - 1];
-  const minMaxImage = images.min_max_control[images.min_max_control.length - 1];
-  const idleVersion = idleImage.split(':')[1];
-  const minMaxVersion = minMaxImage.split(':')[1];
+fastify.post('/run', async (req, res) => {
+  if (isFirstStart && !RUNNING_ON_K8S) {
+    console.log('<<<<<<<<<remove containers>>>>>>>>');
+    const { data: images } = await axios.get(
+      `http://${SERVER_IP}:80/api/camera-algorithms/unique-image-names`,
+    );
+    console.log(images);
+    await removeContainers(images);
+    isFirstStart = false;
+  }
+  console.log(req.body, 'req.body');
 
-  const operationImage = images.operation_control[images.operation_control.length - 1];
-  const operationVersion = operationImage.split(':')[1];
-  const machineImage = images.machine_control[images.machine_control.length - 1];
-  const machineVersion = machineImage.split(':')[1];
-  const machineJsImage = images.machine_control_js[images.machine_control_js.length - 1];
-  const machineJsVersion = machineJsImage.split(':')[1];
+  // try {
+  //   let validationError = validationEndpointRun(req.body);
+  //   if (validationError) {
+  //     res.send({ status: false, error: validationError });
+  //     return;
+  //   }
 
-  res.send([
-    {
-      name: 'Idle Control PYTHON',
-      version: idleVersion,
-      date: '09.13.2023',
-      description:
-        'Designed to ensure that employees stay focused and on-task, preventing distractions' +
-        ' such as talking on the phone, smoking breaks, and other time-wasting activities. With Idle Control, ' +
-        'employers can monitor employee activity and productivity to ensure maximum efficiency. ',
-    },
-    {
-      name: 'MinMax Control PYTHON',
-      version: minMaxVersion,
-      date: '09.20.2023',
-      description:
-        'Designed to ensure that optimal stock levels are maintained. ' +
-        'This type of control helps to make informed decisions about when & how much to order. ' +
-        'You can avoid overstocking or stockouts, preventing costly production line stoppages and lost profits.',
-    },
-    {
-      name: 'Operation Control',
-      version: operationVersion,
-      date: '08.31.2023',
-      description:
-        'Designed to ensure that the necessary number of operations are executed while cleaning seams during production.' +
-        ' This type of control helps to streamline the process and prevent any errors or omissions that could lead to costly production delays. ',
-    },
-    {
-      name: 'Machine Control Python',
-      version: machineVersion,
-      date: '09.20.2023',
-      description:
-        'Designed to ensure that the machine is not left unsupervised, which' +
-        ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
-        'This control is essential in workplaces where machines are used, such as factories, ' +
-        'construction sites, or warehouses.',
-    },
-    {
-      name: 'Machine Control Js',
-      version: machineJsVersion,
-      date: '09.20.2023',
-      description:
-        'Designed to ensure that the machine is not left unsupervised, which' +
-        ' could lead to accidents, breakdowns, or other issues (downtime & lost profits). ' +
-        'This control is essential in workplaces where machines are used, such as factories, ' +
-        'construction sites, or warehouses.',
-    },
-  ]);
+  //   validationError = validationEndpointRunMinMaxAlgorithm(req.body);
+  //   if (validationError) {
+  //     console.log(validationError, 'validationError');
+  //     res.send({ status: false, error: validationError });
+  //     return;
+  //   }
+  // } catch (e) {
+  //   console.log(e, 'validatio error catch');
+  //   res.send({ status: false, error: 'Validation error' });
+  //   return;
+  // }
+
+  const { camera_url, server_url, algorithm, link_reports, image_name: image, extra } = req.body;
+  console.log({ camera_url, server_url, extra, image, algorithm });
+  const parsedUrl = new URL(camera_url);
+  const ip = parsedUrl.hostname;
+
+  // is algorithms allready started
+  try {
+    if (pythonAlgorithms[camera_url] && pythonAlgorithms[camera_url][image]) {
+      res.send({ status: false, error: 'Algorithm allready started' });
+      return;
+    }
+  } catch (e) {
+    res.send({ status: false, error: 'Validation error' });
+    return;
+  }
+
+  try {
+    if (!RUNNING_ON_K8S) {
+      const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
+      let cameraUrlEnv = `camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot`;
+      if (hostname !== SERVER_IP) {
+        cameraUrlEnv += `?camera_ip=${hostname}`;
+      }
+      const envVars = [cameraUrlEnv];
+      envVars.push(`username=${username}`);
+      envVars.push(`password=${password}`);
+      envVars.push(`server_url=${server_url}`);
+      envVars.push(`link_reports=${link_reports}`);
+      envVars.push(`folder=images/${hostname}`);
+      envVars.push(`camera_ip=${hostname}`);
+      envVars.push(`algorithm_name=${algorithm}`);
+      if (!!req.body.extra) {
+        const areas = req.body.extra;
+        const areasStr = JSON.stringify(areas);
+        console.log(areasStr, 'areasStr');
+        envVars.push(`areas=${areasStr}`);
+        envVars.push(`extra=${areasStr}`);
+      }
+
+    const pid = randomInt();
+    const containerName = `${algorithm.replace(/[/:]/g, '_')}_${pid}`;
+
+    let container = await startContainer(image, containerName, envVars);
+    if (!container) {
+      res.send({ status: false, error: 'Start container error' });
+      return;
+    }
+    if (pythonAlgorithms[camera_url]) {
+      pythonAlgorithms[camera_url][image] = container;
+    } else {
+      pythonAlgorithms[camera_url] = {};
+      pythonAlgorithms[camera_url][image] = container;
+    }
+
+    algorithms[pid] = { camera_url, image, algorithm };
+
+    res.send({ status: true, pid: pid });
+    return;
+    } else {
+      const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
+      let envVars = [{name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot`}];
+      if (hostname !== SERVER_IP) {
+        envVars = [{name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot?camera_ip=${hostname}`}];
+      }
+      envVars.push({name: 'username', value: username});
+      envVars.push({name: 'password', value: password});
+      envVars.push({name: 'server_url', value: server_url});
+      envVars.push({name: 'folder', value: `images/${hostname}`});
+      envVars.push({name: 'algorithm_name', value: algorithm});
+      if (!!req.body.extra) {
+        const areas = req.body.extra;
+        const areasStr = JSON.stringify(areas);
+        console.log(areasStr, 'areasStr');
+        envVars.push({name: 'areas', value: areasStr});
+        envVars.push({name: 'extra', value: areasStr});
+      }
+
+    let pod = await startContainer(image, algorithm, envVars);
+    if (!pod) {
+      res.send({ status: false, error: 'Start container error' });
+      return;
+    }
+    if (pythonAlgorithms[camera_url]) {
+      pythonAlgorithms[camera_url][image] = pod;
+    } else {
+      pythonAlgorithms[camera_url] = {};
+      pythonAlgorithms[camera_url][image] = pod;
+    }
+
+    algorithms[pod] = { camera_url, image, algorithm };
+
+    res.send({ status: true, pid: +pod });
+    return;
+    }
+
+  } catch (e) {
+    console.log(e, 'e');
+    res.send({ status: false, error: 'Start python algorithm error' });
+    return;
+  }
+});
+fastify.get('/image/search', async (req, res) => {
+  try {
+    const { image_name } = req.query;
+
+    const [imageName, tag] = image_name.split(':');
+
+    const image = await searchImage(imageName, tag);
+    if (image)
+      return { status: true, download: true, date: new Date(image.data.Created).toISOString() };
+
+    await searchImageOnDockerHub(imageName, tag);
+
+    return { status: true, download: false };
+  } catch (e) {
+    console.log(e.message);
+    return { status: false, error: e.message };
+  }
+});
+
+fastify.get('/image/download', async (req, res) => {
+  try {
+    const { image_name } = req.query;
+
+    const [imageName, tag] = image_name.split(':');
+
+    const image = await pullImageFromDockerHub(imageName, tag);
+
+    return { status: true, date: new Date(image.data.Created).toISOString() };
+  } catch (e) {
+    return { status: false, error: e.message };
+  }
 });
 
 fastify.listen({ port: 3333, host: '0.0.0.0' }, (err, address) => {
