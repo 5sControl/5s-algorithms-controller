@@ -4,7 +4,11 @@
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
-**[5controlS](https://5controls.com/)** is an open source platform. Plug-in your ML-algorithms and get a ready-to-use software for manufacturing monitoring.
+**[5controlS](https://5controls.com/)** is an open source AI-powered manufacturing operations platform that helps companies improve productivity, eliminate waste, and enhance workplace safety using computer vision (CV) and machine learning (ML). 
+
+The platform generates detailed reports to provide insights on how processes can be optimized.
+
+Plug-in your ML-algorithms or some of the Official 5s algorithms and get a ready-to-use software for manufacturing monitoring.
 
 # **Project repositories**
 
@@ -21,7 +25,7 @@ The connections between the project repositories are illustrated by the followin
 2. [5s-frontend](https://github.com/5sControl/5s-frontend)
 3. [5s-algorithms-controller](https://github.com/5sControl/5s-algorithms-controller)
 4. [5s-onvif](https://github.com/5sControl/5s-onvif)
-5. [5s-onvif-finder]()
+5. [5s-onvif-finder](https://github.com/5sControl/5s-onvif-finder)
 
 **Official Algorithms:**
 1. [min-max](https://github.com/5sControl/min-max)
@@ -31,11 +35,15 @@ The connections between the project repositories are illustrated by the followin
 5. [machine-control-js](https://github.com/5sControl/machine-control-js)
 
 **Algorithms Servers:**
-1. [inference-server-js]()
+1. [inference-server-js](https://github.com/5sControl/inference-server-js)
 
 # **Documentation**
 
 [User Documentation](https://github.com/5sControl/Manufacturing-Automatization-Enterprise/wiki)
+
+[Installation Guide Pt.1](https://5controls.com/blog/installing-5s-control-software)
+
+[Installation Guide Pt.2](https://5controls.com/blog/installing-5s-control-software-part-2-docker)
 
 # **Contributing**
 Thank you for considering contributing to 5controlS. We truly believe that we can build an outstanding product together!
