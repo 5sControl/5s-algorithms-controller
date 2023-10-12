@@ -176,6 +176,7 @@ fastify.post('/run', async (req, res) => {
         cameraUrlEnv += `?camera_ip=${hostname}`;
       }
       const envVars = [cameraUrlEnv];
+      envVars.push(`camera_stream_url=${camera_url}`);
       envVars.push(`username=${username}`);
       envVars.push(`password=${password}`);
       envVars.push(`server_url=${server_url}`);
@@ -191,62 +192,66 @@ fastify.post('/run', async (req, res) => {
         envVars.push(`extra=${areasStr}`);
       }
 
-    const pid = randomInt();
-    const containerName = `${algorithm.replace(/[/:]/g, '_')}_${pid}`;
+      const pid = randomInt();
+      const containerName = `${algorithm.replace(/[/:]/g, '_')}_${pid}`;
 
-    let container = await startContainer(image, containerName, envVars);
-    if (!container) {
-      res.send({ status: false, error: 'Start container error' });
+      let container = await startContainer(image, containerName, envVars);
+      if (!container) {
+        res.send({ status: false, error: 'Start container error' });
+        return;
+      }
+      if (pythonAlgorithms[camera_url]) {
+        pythonAlgorithms[camera_url][image] = container;
+      } else {
+        pythonAlgorithms[camera_url] = {};
+        pythonAlgorithms[camera_url][image] = container;
+      }
+
+      algorithms[pid] = { camera_url, image, algorithm };
+
+      res.send({ status: true, pid: pid });
       return;
-    }
-    if (pythonAlgorithms[camera_url]) {
-      pythonAlgorithms[camera_url][image] = container;
-    } else {
-      pythonAlgorithms[camera_url] = {};
-      pythonAlgorithms[camera_url][image] = container;
-    }
-
-    algorithms[pid] = { camera_url, image, algorithm };
-
-    res.send({ status: true, pid: pid });
-    return;
     } else {
       const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
-      let envVars = [{name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot`}];
+      let envVars = [{ name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot` }];
       if (hostname !== SERVER_IP) {
-        envVars = [{name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot?camera_ip=${hostname}`}];
+        envVars = [
+          {
+            name: 'camera_url',
+            value: `http://${SERVER_IP}:3456/onvif-http/snapshot?camera_ip=${hostname}`,
+          },
+        ];
       }
-      envVars.push({name: 'username', value: username});
-      envVars.push({name: 'password', value: password});
-      envVars.push({name: 'server_url', value: server_url});
-      envVars.push({name: 'folder', value: `images/${hostname}`});
-      envVars.push({name: 'algorithm_name', value: algorithm});
+      envVars.push({ name: 'username', value: username });
+      envVars.push({ name: 'password', value: password });
+      envVars.push({ name: 'server_url', value: server_url });
+      envVars.push({ name: 'folder', value: `images/${hostname}` });
+      envVars.push({ name: 'algorithm_name', value: algorithm });
       if (!!req.body.extra) {
         const areas = req.body.extra;
         const areasStr = JSON.stringify(areas);
         console.log(areasStr, 'areasStr');
-        envVars.push({name: 'areas', value: areasStr});
-        envVars.push({name: 'extra', value: areasStr});
+        envVars.push({ name: 'areas', value: areasStr });
+        envVars.push({ name: 'extra', value: areasStr });
       }
 
-    let pod = await startContainer(image, algorithm, envVars);
-    if (!pod) {
-      res.send({ status: false, error: 'Start container error' });
+      let pod = await startContainer(image, algorithm, envVars);
+      if (!pod) {
+        res.send({ status: false, error: 'Start container error' });
+        return;
+      }
+      if (pythonAlgorithms[camera_url]) {
+        pythonAlgorithms[camera_url][image] = pod;
+      } else {
+        pythonAlgorithms[camera_url] = {};
+        pythonAlgorithms[camera_url][image] = pod;
+      }
+
+      algorithms[pod] = { camera_url, image, algorithm };
+
+      res.send({ status: true, pid: +pod });
       return;
     }
-    if (pythonAlgorithms[camera_url]) {
-      pythonAlgorithms[camera_url][image] = pod;
-    } else {
-      pythonAlgorithms[camera_url] = {};
-      pythonAlgorithms[camera_url][image] = pod;
-    }
-
-    algorithms[pod] = { camera_url, image, algorithm };
-
-    res.send({ status: true, pid: +pod });
-    return;
-    }
-
   } catch (e) {
     console.log(e, 'e');
     res.send({ status: false, error: 'Start python algorithm error' });
