@@ -41,7 +41,7 @@ export const startContainer = async (
       const startedContainer = await container.start();
       return startedContainer;
     } else {
-      const body = { image, name, envVariables };
+      const body = { image, name, envVars };
       const response = await axios.post(`http://${K8S_MASTER_IP}:4545/create-pod`, body);
       return response.data?.name || null;
     }
