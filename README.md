@@ -17,7 +17,7 @@ The connections between the project repositories are illustrated by the followin
 > Please note that to ensure system stability and perfomance you can use one of the Official 5S algorithms instead of Your Algorithm.
 
 <p align="center">
-  <img src="https://github.com/5sControl/5s-backend/assets/131950264/60cbc463-ce88-4af2-a4ed-7e3c01f7a955" alt="5controlS-diagram" />
+  <img src="https://github.com/5sControl/5s-webserver/assets/131950264/6bfb9a7b-e16f-4600-8656-3f41fc61dba3" alt="5controlS-diagram" />
 </p>
 
 **5controlS Platform:**
@@ -102,11 +102,13 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 If you want to contribute, read  our [contributing guide](CONTRIBUTING.md) to learn about our development process and pull requests workflow.
 
-We also have a list of [good first issues]() that will help you make your first step to beсoming a 5S contributor.
+We also have a list of [good first issues](https://github.com/5sControl/5s-algorithms-controller/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) that will help you make your first step to beсoming a 5S contributor.
 
 # **License**
 
-> Please note that [some](Components-with-copyleft-licensies.md) of the Official Algorithms are using copyleft licensies.  
+[GNU GPL-3.0](LICENSE)
+
+> 5controlS uses third party libraries that are distributed under their own terms (see [LICENSE-3RD-PARTY.md](https://github.com/5sControl/5s-algorithms-controller/blob/main/LICENSE-3RD-PARTY.md)).<br>
 
 <br>
 <div align="center">
