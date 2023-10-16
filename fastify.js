@@ -34,11 +34,12 @@ fastify.register(cors, (instance) => {
 isExists('images');
 const algorithms = {};
 let isFirstStart = true;
-const SERVER_IP = process.env.IP;
+const DJANGO_SERVICE_URL = process.env.DJANGO_SERVICE_URL;
+const ONVIF_SERVICE_URL = process.env.ONVIF_SERVICE_URL;
 const RUNNING_ON_K8S = process.env.K8S;
 const pythonAlgorithms = {};
 
-const socket = io(`http://${SERVER_IP}:3456`);
+const socket = io(`http://${ONVIF_SERVICE_URL}:3456`);
 let tasks = {};
 function asyncSetInterval(fn, interval) {
   const asyncWrapper = async () => {
@@ -125,7 +126,7 @@ fastify.post('/run', async (req, res) => {
   if (isFirstStart && !RUNNING_ON_K8S) {
     console.log('<<<<<<<<<remove containers>>>>>>>>');
     const { data: images } = await axios.get(
-      `http://${SERVER_IP}:80/api/camera-algorithms/unique-image-names`,
+      `http://${DJANGO_SERVICE_URL}:8000/api/camera-algorithms/unique-image-names`,
     );
     console.log(images);
     await removeContainers(images);
@@ -171,8 +172,8 @@ fastify.post('/run', async (req, res) => {
   try {
     if (!RUNNING_ON_K8S) {
       let { hostname, username, password } = parseRTSPuri(req.body.camera_url);
-      let cameraUrlEnv = `camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot`;
-      if (hostname !== SERVER_IP) {
+      let cameraUrlEnv = `camera_url=http://${ONVIF_SERVICE_URL}:3456/onvif-http/snapshot`;
+      if (hostname !== ONVIF_SERVICE_URL) {
         cameraUrlEnv += `?camera_ip=${hostname}`;
       }
       const envVars = [cameraUrlEnv];
@@ -213,12 +214,12 @@ fastify.post('/run', async (req, res) => {
       return;
     } else {
       const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
-      let envVars = [{ name: 'camera_url', value: `http://${SERVER_IP}:3456/onvif-http/snapshot` }];
-      if (hostname !== SERVER_IP) {
+      let envVars = [{ name: 'camera_url', value: `http://${ONVIF_SERVICE_URL}:3456/onvif-http/snapshot` }];
+      if (hostname !== ONVIF_SERVICE_URL) {
         envVars = [
           {
             name: 'camera_url',
-            value: `http://${SERVER_IP}:3456/onvif-http/snapshot?camera_ip=${hostname}`,
+            value: `http://${ONVIF_SERVICE_URL}:3456/onvif-http/snapshot?camera_ip=${hostname}`,
           },
         ];
       }
