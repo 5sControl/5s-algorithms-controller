@@ -224,7 +224,7 @@ fastify.post('/run', async (req, res) => {
       }
       envVars.push({ name: 'username', value: username });
       envVars.push({ name: 'password', value: password });
-      envVars.push({ name: 'server_url', value: server_url });
+      envVars.push({ name: 'server_url', value: algorithm });
       envVars.push({ name: 'folder', value: `images/${hostname}` });
       envVars.push({ name: 'algorithm_name', value: algorithm });
       if (!!req.body.extra) {
