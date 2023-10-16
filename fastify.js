@@ -170,7 +170,7 @@ fastify.post('/run', async (req, res) => {
 
   try {
     if (!RUNNING_ON_K8S) {
-      const { hostname, username, password } = parseRTSPuri(req.body.camera_url);
+      let { hostname, username, password } = parseRTSPuri(req.body.camera_url);
       let cameraUrlEnv = `camera_url=http://${SERVER_IP}:3456/onvif-http/snapshot`;
       if (hostname !== SERVER_IP) {
         cameraUrlEnv += `?camera_ip=${hostname}`;
@@ -224,7 +224,9 @@ fastify.post('/run', async (req, res) => {
       }
       envVars.push({ name: 'username', value: username });
       envVars.push({ name: 'password', value: password });
-      envVars.push({ name: 'server_url', value: algorithm });
+
+      const modelNamesToPodNames = {"min_max_control": "min-max-model", "machine_control": "machine-model", "idle_control": "idle-model"}
+      envVars.push({ name: 'server_url', value: modelNamesToPodNames[algorithm]});
       envVars.push({ name: 'folder', value: `images/${hostname}` });
       envVars.push({ name: 'algorithm_name', value: algorithm });
       if (!!req.body.extra) {
