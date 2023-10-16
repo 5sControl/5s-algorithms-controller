@@ -225,8 +225,8 @@ fastify.post('/run', async (req, res) => {
       envVars.push({ name: 'username', value: username });
       envVars.push({ name: 'password', value: password });
 
-      const modelNamesToPodNames = {"min_max_control": "min-max-model", "machine_control": "machine-model", "idle_control": "idle-model"}
-      envVars.push({ name: 'server_url', value: modelNamesToPodNames[algorithm]});
+      const modelNamesToServiceNames = {"min_max_control": "http://min-max-model", "machine_control": "http://machine-model", "idle_control": "http://idle-model"}
+      envVars.push({ name: 'server_url', value: modelNamesToServiceNames[algorithm]});
       envVars.push({ name: 'folder', value: `images/${hostname}` });
       envVars.push({ name: 'algorithm_name', value: algorithm });
       if (!!req.body.extra) {
