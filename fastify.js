@@ -225,7 +225,7 @@ fastify.post('/run', async (req, res) => {
       envVars.push({ name: 'username', value: username });
       envVars.push({ name: 'password', value: password });
 
-      const modelNamesToServiceNames = {"min_max_control": "http://min-max-model", "machine_control": "http://machine-model", "idle_control": "http://idle-model"}
+      const modelNamesToServiceNames = {"min_max_control": "http://min-max-model", "machine_control": "http://machine-model", "machine_control_js": "http://machine-model-js", "idle_control": "http://idle-model"}
       envVars.push({ name: 'server_url', value: modelNamesToServiceNames[algorithm]});
       envVars.push({ name: 'folder', value: `images/${hostname}` });
       envVars.push({ name: 'algorithm_name', value: algorithm });
