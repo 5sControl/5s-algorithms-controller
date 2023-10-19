@@ -41,7 +41,7 @@ export const startContainer = async (
       const startedContainer = await container.start();
       return startedContainer;
     } else {
-      const body = { image, name, envVariables };
+      const body = { image, name, envVars };
       const response = await axios.post(`http://${K8S_MASTER_IP}:4545/create-pod`, body);
       return response.data?.name || null;
     }
@@ -54,7 +54,7 @@ export const startContainer = async (
 export const removeContainer = async (pod) => {
   try {
     if (!RUNNING_ON_K8S) {
-      const deletedContainer = await container.delete({ force: true });
+      const deletedContainer = await pod.delete({ force: true });
       return true;
     } else {
       const response = await axios.post(`http://${K8S_MASTER_IP}:4545/stop-pod`, { pod });
