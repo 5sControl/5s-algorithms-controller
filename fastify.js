@@ -37,6 +37,10 @@ let isFirstStart = true;
 const DJANGO_SERVICE_URL = process.env.DJANGO_SERVICE_URL;
 const ONVIF_SERVICE_URL = process.env.ONVIF_SERVICE_URL;
 const RUNNING_ON_K8S = process.env.K8S;
+setTimeout(() => {
+  axios.get(`http://${DJANGO_SERVICE_URL}:8000/api/core/start-process/`);
+}, 10000)
+
 const pythonAlgorithms = {};
 
 const socket = io(`http://${ONVIF_SERVICE_URL}:3456`);
