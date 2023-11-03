@@ -1,13 +1,16 @@
-const Docker = require('node-docker-api').Docker;
-const docker = new Docker({socketPath: '/var/run/docker.sock'})
+const json = {
+            "algorithm":  "machine_control_js",
+            "camera": '102022222',
+            "start_tracking": 'date',
+            "stop_tracking": 'date',
+            "photos": [],
+            "violation_found": true,
+            "extra": {}
+        }
+        const body = JSON.stringify(json, null, 2)
 
-const t = async () => {
-const containers = await docker.container.list({all: true});
-containers.forEach(c => {
-if (c.data?.Names[0]?.includes('model')) {
-container
-}
-
-})
-}
-t()
+fetch('http://django-service:8000/api/reports/report-with-photos/', {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+            body
+        })
