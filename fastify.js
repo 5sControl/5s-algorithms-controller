@@ -155,8 +155,6 @@ fastify.post('/run', async (req, res) => {
 
   const { camera_url, server_url, algorithm, link_reports, image_name: image, extra } = req.body;
   console.log({ camera_url, server_url, extra, image, algorithm });
-  const parsedUrl = new URL(camera_url);
-  const ip = parsedUrl.hostname;
 
   // is algorithms allready started
   try {
