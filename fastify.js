@@ -224,6 +224,7 @@ fastify.post('/run', async (req, res) => {
             value: `http://${ONVIF_SERVICE_URL}:3456/onvif-http/snapshot?camera_ip=${hostname}`,
           },
         ];
+        envVars.push({ name: 'camera_ip', value: hostname})
       }
       envVars.push({ name: 'username', value: username });
       envVars.push({ name: 'password', value: password });
