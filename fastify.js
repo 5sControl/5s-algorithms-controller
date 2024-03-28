@@ -37,6 +37,10 @@ let isFirstStart = true;
 const DJANGO_SERVICE_URL = process.env.DJANGO_SERVICE_URL;
 const ONVIF_SERVICE_URL = process.env.ONVIF_SERVICE_URL;
 const RUNNING_ON_K8S = process.env.K8S;
+setTimeout(() => {
+  axios.get(`http://${DJANGO_SERVICE_URL}:8000/api/core/start-process/`);
+}, 10000)
+
 const pythonAlgorithms = {};
 
 const socket = io(`http://${ONVIF_SERVICE_URL}:3456`);
@@ -220,12 +224,19 @@ fastify.post('/run', async (req, res) => {
             value: `http://${ONVIF_SERVICE_URL}:3456/onvif-http/snapshot?camera_ip=${hostname}`,
           },
         ];
+        envVars.push({ name: 'camera_ip', value: hostname})
       }
       envVars.push({ name: 'username', value: username });
       envVars.push({ name: 'password', value: password });
 
       const modelNamesToServiceNames = {"min_max_control": "http://min-max-model", "machine_control": "http://machine-model", "machine_control_js": "http://machine-model-js", "idle_control": "http://idle-model"}
-      envVars.push({ name: 'server_url', value: modelNamesToServiceNames[algorithm]});
+      let modelName = "http://min-max-model";
+      for (let name in modelNamesToServiceNames) {
+        if (algorithm.includes(name)) {
+          modelName = modelNamesToServiceNames[name]
+        }
+      }
+      envVars.push({ name: 'server_url', value: modelName});
       envVars.push({ name: 'folder', value: `images/${hostname}` });
       envVars.push({ name: 'algorithm_name', value: algorithm });
       if (!!req.body.extra) {

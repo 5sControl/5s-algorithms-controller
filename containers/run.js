@@ -7,6 +7,7 @@ const ALGORITMS_TARGET_DEBUG_DIST = process.env.ALGORITMS_TARGET_DEBUG_DIST;
 const ALGORITMS_TARGET_IMAGES_DIST = process.env.ALGORITMS_TARGET_IMAGES_DIST;
 const ALGORITMS_SOURCE_DEBUG_DIST = process.env.ALGORITMS_SOURCE_DEBUG_DIST;
 const ALGORITMS_SOURCE_IMAGES_DIST = process.env.ALGORITMS_SOURCE_IMAGES_DIST;
+const NETWORK = process.env.NETWORK;
 
 export const startContainer = async (
   image = 'test_ref',
@@ -35,7 +36,12 @@ export const startContainer = async (
             },
           ],
           CpuQuota: 100000,
-          NetworkMode: 'host',
+          ExtraHosts: ['host.docker.internal:host-gateway'],
+        },
+        NetworkingConfig: {
+          EndpointsConfig: {
+            [NETWORK]: {},
+          },
         },
       });
       const startedContainer = await container.start();
